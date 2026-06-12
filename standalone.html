@@ -1,0 +1,1296 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<title>今日の一問 — きみ専用のれんしゅう</title>
+<style>
+  :root{
+    --bg:#0f1226; --card:#1d2247; --card2:#252b56;
+    --ink:#eef1ff; --sub:#a6adda; --line:#33396b;
+    --accent:#ffd23f; --accent2:#ff8e3c; --good:#37e0a6; --bad:#ff6b8a;
+    --blue:#5b9dff; --purple:#b388ff; --green:#5be37a;
+    --shadow:0 10px 30px rgba(0,0,0,.35);
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  html,body{margin:0;padding:0;}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic UI","Meiryo",sans-serif;
+    background:radial-gradient(1200px 600px at 70% -10%, #2a2f63 0%, var(--bg) 55%) fixed;
+    color:var(--ink); min-height:100vh; line-height:1.7;}
+  .wrap{max-width:560px;margin:0 auto;padding:16px 16px 60px;}
+  .topbar{display:flex;align-items:center;gap:10px;margin-bottom:14px;}
+  .logo{font-weight:800;font-size:18px;}
+  .logo small{display:block;font-size:11px;color:var(--sub);font-weight:600;}
+  .spacer{flex:1;}
+  .pill{display:flex;align-items:center;gap:6px;background:var(--card);border:1px solid var(--line);
+    border-radius:999px;padding:6px 12px;font-weight:700;font-size:13px;}
+  .pill.flame{color:var(--accent2);} .pill.xp{color:var(--accent);}
+  .iconbtn{width:38px;height:38px;border-radius:12px;background:var(--card);border:1px solid var(--line);
+    color:var(--ink);font-size:17px;cursor:pointer;display:grid;place-items:center;}
+  .iconbtn:active{transform:scale(.95);} .iconbtn.on{background:rgba(91,157,255,.2);border-color:var(--blue);}
+  .levelrow{display:flex;align-items:center;gap:10px;margin:4px 2px 14px;}
+  .lvbadge{width:42px;height:42px;border-radius:50%;display:grid;place-items:center;font-weight:800;font-size:15px;
+    background:linear-gradient(135deg,var(--accent),var(--accent2));color:#3a2400;box-shadow:0 4px 14px rgba(255,142,60,.4);flex:none;}
+  .lvmeta{flex:1;} .lvmeta .t{font-size:12px;color:var(--sub);font-weight:700;}
+  .bar{height:9px;background:#0c1030;border-radius:999px;overflow:hidden;margin-top:4px;border:1px solid var(--line);}
+  .bar>i{display:block;height:100%;width:0%;background:linear-gradient(90deg,var(--good),var(--blue));border-radius:999px;transition:width .6s cubic-bezier(.2,.9,.2,1);}
+  .gradesel{display:flex;gap:7px;margin:0 2px 18px;flex-wrap:wrap;}
+  .gchip{flex:1;min-width:0;text-align:center;padding:8px 4px;border-radius:12px;cursor:pointer;
+    background:var(--card);border:1px solid var(--line);font-weight:800;font-size:12.5px;color:var(--sub);}
+  .gchip small{display:block;font-size:10px;font-weight:600;opacity:.8;}
+  .gchip.active{background:rgba(55,224,166,.16);border-color:var(--good);color:#bff7e2;}
+
+  .nowskill{display:flex;align-items:center;gap:8px;margin:0 2px 10px;font-size:12.5px;color:var(--sub);font-weight:700;}
+  .nowskill .dot{width:8px;height:8px;border-radius:50%;background:var(--green);}
+  .nowskill b{color:var(--ink);}
+  .stepnote{background:rgba(255,142,60,.13);border:1px solid rgba(255,142,60,.4);color:#ffd9b8;
+    border-radius:12px;padding:9px 13px;font-size:12.5px;font-weight:700;margin:0 2px 12px;display:none;}
+  .stepnote.show{display:block;animation:rise .4s;}
+  .stepnote.up{background:rgba(55,224,166,.13);border-color:rgba(55,224,166,.4);color:#bff7e2;}
+
+  .card{background:linear-gradient(180deg,var(--card),var(--card2));border:1px solid var(--line);
+    border-radius:22px;padding:20px;box-shadow:var(--shadow);position:relative;overflow:hidden;}
+  .tagrow{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;align-items:center;}
+  .tag{font-size:11.5px;font-weight:800;padding:4px 10px;border-radius:999px;}
+  .tag.subj{background:rgba(91,157,255,.18);color:#bcd6ff;border:1px solid rgba(91,157,255,.35);}
+  .tag.lvl{background:rgba(55,224,166,.16);color:#9bf3d4;border:1px solid rgba(55,224,166,.3);}
+  .tag.day{background:rgba(255,210,63,.16);color:#ffe69b;border:1px solid rgba(255,210,63,.3);}
+  .hook{font-size:13px;color:var(--accent);font-weight:700;margin-bottom:10px;}
+
+  .diawrap{background:#0e1234;border:1px solid var(--line);border-radius:16px;padding:12px;margin-bottom:14px;}
+  .qhead{display:flex;align-items:flex-start;gap:10px;}
+  .q{font-size:21px;font-weight:800;line-height:1.5;margin:0 0 16px;flex:1;}
+  .speakbtn{flex:none;width:34px;height:34px;border-radius:10px;border:1px solid var(--line);
+    background:#161a3c;color:var(--blue);font-size:16px;cursor:pointer;margin-top:2px;}
+  .speakbtn:active{transform:scale(.93);} .speakbtn.playing{background:rgba(91,157,255,.25);border-color:var(--blue);}
+
+  .choices{display:grid;grid-template-columns:1fr 1fr;gap:11px;}
+  .choice{display:flex;align-items:center;justify-content:center;gap:8px;background:#161a3c;border:2px solid var(--line);
+    border-radius:16px;padding:16px 12px;font-size:19px;font-weight:800;cursor:pointer;
+    transition:transform .12s,border-color .15s,background .15s;color:var(--ink);min-height:58px;}
+  .choice:active{transform:scale(.97);}
+  .choice.correct{border-color:var(--good);background:rgba(55,224,166,.16);}
+  .choice.wrong{border-color:var(--bad);background:rgba(255,107,138,.14);}
+  .choice.dim{opacity:.35;} .choice[disabled]{cursor:default;}
+
+  .reveal{margin-top:16px;display:none;animation:rise .45s cubic-bezier(.2,.9,.2,1);}
+  .reveal.show{display:block;}
+  @keyframes rise{from{opacity:0;transform:translateY(14px);}to{opacity:1;transform:translateY(0);}}
+  .verdict{display:flex;align-items:center;gap:10px;font-weight:800;font-size:18px;margin-bottom:12px;}
+  .verdict.ok{color:var(--good);} .verdict.ng{color:var(--bad);} .verdict .big{font-size:26px;}
+  .block{background:#13173a;border:1px solid var(--line);border-radius:16px;padding:14px 16px;margin-bottom:11px;position:relative;}
+  .block .lab{font-size:11.5px;font-weight:800;letter-spacing:.05em;margin-bottom:6px;display:flex;align-items:center;gap:6px;}
+  .block .lab .e{font-size:15px;} .block .body{font-size:14.5px;color:#dfe3ff;}
+  .lab.expl{color:var(--blue);} .lab.real{color:var(--green);} .lab.connect{color:var(--purple);}
+  .miniSpeak{position:absolute;top:11px;right:11px;width:28px;height:28px;border-radius:8px;
+    border:1px solid var(--line);background:#161a3c;color:var(--blue);font-size:13px;cursor:pointer;}
+  .connchips{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;}
+  .connchip{font-size:12px;font-weight:800;padding:6px 11px;border-radius:999px;
+    background:rgba(179,136,255,.14);border:1px solid rgba(179,136,255,.35);color:#d7c4ff;}
+  .combo{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) scale(.6);font-size:40px;font-weight:900;
+    color:var(--accent);text-shadow:0 4px 24px rgba(255,142,60,.6);opacity:0;pointer-events:none;z-index:50;}
+  .combo.go{animation:comboPop 1s ease forwards;}
+  @keyframes comboPop{0%{opacity:0;transform:translate(-50%,-50%) scale(.6) rotate(-8deg);}
+    20%{opacity:1;transform:translate(-50%,-60%) scale(1.15) rotate(3deg);}100%{opacity:0;transform:translate(-50%,-120%) scale(1) rotate(0);}}
+  .btn{display:block;width:100%;text-align:center;border:none;border-radius:16px;padding:15px;font-size:16px;font-weight:800;
+    cursor:pointer;margin-top:6px;color:#2a1c00;background:linear-gradient(135deg,var(--accent),var(--accent2));box-shadow:0 6px 18px rgba(255,142,60,.35);}
+  .btn:active{transform:scale(.98);}
+  .btn.ghost{background:transparent;color:var(--sub);box-shadow:none;border:1px solid var(--line);font-weight:700;}
+  .section-title{font-size:14px;font-weight:800;color:var(--sub);margin:26px 6px 12px;display:flex;align-items:center;gap:8px;}
+  .skills{display:flex;flex-direction:column;gap:9px;}
+  .srow{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:11px 13px;}
+  .srow .top{display:flex;align-items:center;gap:8px;font-weight:800;font-size:13.5px;margin-bottom:7px;}
+  .srow .e{font-size:17px;} .srow .pct{margin-left:auto;font-size:12px;color:var(--sub);}
+  .srow .track{height:8px;background:#0c1030;border-radius:999px;overflow:hidden;border:1px solid var(--line);}
+  .srow .track>i{display:block;height:100%;border-radius:999px;transition:width .5s;}
+  .srow.weak{border-color:rgba(255,107,138,.5);} .srow.mastered .pct{color:var(--good);}
+  .badges{display:flex;gap:10px;flex-wrap:wrap;}
+  .badge{width:60px;text-align:center;}
+  .badge .bcircle{width:54px;height:54px;border-radius:50%;margin:0 auto 5px;display:grid;place-items:center;font-size:25px;
+    background:var(--card);border:2px solid var(--line);filter:grayscale(1);opacity:.4;}
+  .badge.got .bcircle{filter:none;opacity:1;border-color:var(--accent);background:rgba(255,210,63,.12);box-shadow:0 4px 14px rgba(255,210,63,.25);}
+  .badge .bname{font-size:10px;color:var(--sub);font-weight:700;line-height:1.3;}
+  .footer{text-align:center;color:var(--sub);font-size:11.5px;margin-top:30px;line-height:1.8;}
+  .footer a{color:var(--blue);text-decoration:none;}
+  .toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%) translateY(30px);background:var(--card2);
+    border:1px solid var(--line);color:var(--ink);padding:12px 18px;border-radius:14px;font-weight:700;font-size:14px;
+    box-shadow:var(--shadow);opacity:0;transition:.35s;z-index:60;max-width:90%;}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+  .done{text-align:center;padding:30px 10px;} .done .big{font-size:46px;margin-bottom:6px;}
+  .done h2{margin:6px 0;font-size:20px;} .done p{color:var(--sub);font-size:14px;}
+  .hidden{display:none !important;}
+  .modal{position:fixed;inset:0;background:rgba(6,8,22,.72);z-index:100;display:none;align-items:flex-start;justify-content:center;padding:30px 14px;overflow:auto;}
+  .modal.show{display:flex;}
+  .sheet{width:100%;max-width:520px;background:linear-gradient(180deg,var(--card),var(--card2));border:1px solid var(--line);border-radius:22px;padding:22px;box-shadow:var(--shadow);}
+  .sheet h2{margin:0 0 4px;font-size:19px;} .sheet .lead{color:var(--sub);font-size:12.5px;margin-bottom:16px;}
+  .statgrid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:16px;}
+  .stat{background:#13173a;border:1px solid var(--line);border-radius:14px;padding:12px 8px;text-align:center;}
+  .stat .n{font-size:22px;font-weight:800;color:var(--accent);} .stat .l{font-size:11px;color:var(--sub);font-weight:700;margin-top:2px;}
+  .repbar{margin-bottom:9px;}
+  .repbar .top{display:flex;justify-content:space-between;font-size:12.5px;font-weight:700;margin-bottom:4px;}
+  .repbar .track{height:10px;background:#0c1030;border-radius:999px;overflow:hidden;border:1px solid var(--line);}
+  .repbar .track>i{display:block;height:100%;border-radius:999px;}
+  .stuck{background:rgba(255,107,138,.1);border:1px solid rgba(255,107,138,.35);border-radius:14px;padding:13px 15px;font-size:13px;color:#ffd4dd;margin:12px 0;}
+  .voice{background:rgba(91,157,255,.1);border:1px solid rgba(91,157,255,.3);border-radius:14px;padding:13px 15px;font-size:13px;color:#cfe0ff;margin:12px 0;}
+  .voice b,.stuck b{color:#fff;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topbar">
+    <div class="logo">今日の一問<small>きみ専用のれんしゅう</small></div>
+    <div class="spacer"></div>
+    <div class="pill flame"><span>🔥</span><span id="streak">0</span></div>
+    <div class="pill xp"><span>⭐</span><span id="xp">0</span></div>
+    <button class="iconbtn" id="autoReadBtn" title="自動読み上げ">🔊</button>
+    <button class="iconbtn" id="parentBtn" title="保護者レポート">👪</button>
+  </div>
+
+  <div class="levelrow">
+    <div class="lvbadge" id="lvBadge">Lv1</div>
+    <div class="lvmeta">
+      <div class="t"><span id="lvTitle">たんけん見習い</span> ・ つぎまで <span id="lvRemain">100</span>XP</div>
+      <div class="bar"><i id="lvBar"></i></div>
+    </div>
+  </div>
+
+  <div class="gradesel" id="gradeSel"></div>
+  <div class="gradesel" id="levelSel" style="margin-bottom:14px"></div>
+  <div class="nowskill" id="nowSkill"></div>
+  <div class="stepnote" id="stepNote"></div>
+
+  <div class="card" id="card">
+    <div class="tagrow">
+      <span class="tag subj" id="tSubj">スキル</span>
+      <span class="tag lvl" id="tLvl">習得度</span>
+      <span class="tag day" id="tDay">第1問</span>
+    </div>
+    <div class="hook" id="hook"></div>
+    <div class="diawrap" id="diaWrap"></div>
+    <div class="qhead">
+      <h2 class="q" id="qtext"></h2>
+      <button class="speakbtn" id="qSpeak" title="読み上げ">🔊</button>
+    </div>
+    <div class="choices" id="choices"></div>
+
+    <div class="reveal" id="reveal">
+      <div class="verdict" id="verdict"></div>
+      <div class="block"><div class="lab expl"><span class="e">🧩</span>図で見ると</div>
+        <button class="miniSpeak" data-for="explain">🔊</button><div class="body" id="explain"></div></div>
+      <div class="block"><div class="lab real"><span class="e">🌍</span>これ、実生活のどこで使う？</div>
+        <button class="miniSpeak" data-for="real">🔊</button><div class="body" id="real"></div></div>
+      <div class="block">
+        <div class="lab connect"><span class="e">🧭</span>つながる分野</div>
+        <div class="connchips" id="connectChips"></div>
+      </div>
+      <button class="btn" id="nextBtn">つぎの一問へ ▶</button>
+      <button class="btn ghost" id="stopBtn">今日はここまでにする</button>
+    </div>
+  </div>
+
+  <div class="section-title">📈 算数の習得マップ（どこまで進んだ？）</div>
+  <div class="skills" id="skillsMap"></div>
+
+  <div class="section-title">🏅 あつめたバッジ</div>
+  <div class="badges" id="badges"></div>
+
+  <div class="footer">
+    間違えても減点なし。むずかしかったら自動でやさしい問題にもどります。<br>
+    問題はその場で作られるので、毎回ちがう数字。進み具合はこの端末に自動保存。<br>
+    <a href="#" id="resetLink">▷ さいしょからやり直す</a>
+  </div>
+</div>
+
+<div class="modal" id="parentModal">
+  <div class="sheet">
+    <h2>👪 保護者レポート</h2>
+    <div class="lead">どこでつまずき、どう声をかけるとよいか。</div>
+    <div class="statgrid">
+      <div class="stat"><div class="n" id="rWeek">0</div><div class="l">今週やった問題</div></div>
+      <div class="stat"><div class="n" id="rTotal">0</div><div class="l">これまで累計</div></div>
+      <div class="stat"><div class="n" id="rAcc">0%</div><div class="l">正答率</div></div>
+    </div>
+    <div style="font-size:13px;font-weight:800;color:var(--sub);margin:6px 2px 10px">📊 スキル別の習得度</div>
+    <div id="rSkills"></div>
+    <div class="stuck" id="rStuck"></div>
+    <div class="voice" id="rVoice"></div>
+    <button class="btn ghost" id="parentClose">とじる</button>
+  </div>
+</div>
+
+<div class="combo" id="comboPop"></div>
+<div class="toast" id="toast"></div>
+
+<script>
+/* ============================================================
+   今日の一問 — スキル定義＋問題ジェネレーター＋図解生成
+   ・固定問題集ではなく、毎回その場で問題を生成する
+   ・答えの位置はエンジン側でシャッフル（正解は1に偏らない）
+   ・各問題に図解(SVG)を自動生成
+   ・prereq（前提スキル）で、間違えたら簡単な所まで戻れる
+   ============================================================ */
+(function(){
+  const COL = {blue:"#5b9dff",green:"#5be37a",pink:"#ff7bd0",amber:"#ffd23f",
+    orange:"#ff8e3c",purple:"#b388ff",teal:"#37e0a6",red:"#ff6b8a",grid:"#2b3160",ink:"#dfe3ff",sub:"#8b93c8"};
+
+  const R = (a,b)=>Math.floor(Math.random()*(b-a+1))+a;
+  const pick = arr => arr[Math.floor(Math.random()*arr.length)];
+  const uniq = a => [...new Set(a)];
+
+  /* ---------- 図解 SVG 生成 ----------
+     d.type に応じて絵を返す。viewBox 320x180 を基本とする。 */
+  function svg(inner, h){ return `<svg viewBox="0 0 320 ${h||180}" width="100%" xmlns="http://www.w3.org/2000/svg" style="display:block">${inner}</svg>`; }
+
+  function diaDots(p){ // 2グループのドット（たし算）/ 1グループ＋×（ひき算）
+    const r=14, gap=34, perRow=6, pad=26; let x=pad,y=40,inner="";
+    const draw=(n,color,crossFrom)=>{
+      for(let i=0;i<n;i++){
+        const cx=x+(i%perRow)*gap, cy=y+Math.floor(i/perRow)*gap;
+        inner+=`<circle cx="${cx}" cy="${cy}" r="${r}" fill="${color}" opacity="${crossFrom!=null&&i>=crossFrom?0.25:0.95}"/>`;
+        if(crossFrom!=null&&i>=crossFrom)
+          inner+=`<line x1="${cx-r}" y1="${cy-r}" x2="${cx+r}" y2="${cy+r}" stroke="${COL.red}" stroke-width="4"/>
+                  <line x1="${cx+r}" y1="${cy-r}" x2="${cx-r}" y2="${cy+r}" stroke="${COL.red}" stroke-width="4"/>`;
+      }
+    };
+    if(p.b!=null && p.cross==null){ // たし算: a個＋b個
+      draw(p.a, COL.blue);
+      const rows=Math.ceil(p.a/perRow); y=40+rows*gap+10;
+      inner+=`<text x="160" y="${y-gap+2}" fill="${COL.sub}" font-size="20" text-anchor="middle">＋</text>`;
+      y+=4; draw(p.b, COL.amber);
+      return svg(inner, y+30);
+    } else { // ひき算: a個のうち後ろからb個に×
+      draw(p.a, COL.blue, p.a-p.cross);
+      const rows=Math.ceil(p.a/perRow);
+      return svg(inner, 40+rows*gap+20);
+    }
+  }
+
+  function diaNumberline(p){ // 数直線：from から +d / -d
+    const x0=24,x1=296,W=x1-x0, max=p.max, y=110;
+    const sx=v=>x0+(v/max)*W;
+    let inner=`<line x1="${x0}" y1="${y}" x2="${x1}" y2="${y}" stroke="${COL.sub}" stroke-width="2"/>`;
+    for(let v=0;v<=max;v+=p.step){ const X=sx(v);
+      inner+=`<line x1="${X}" y1="${y-6}" x2="${X}" y2="${y+6}" stroke="${COL.sub}" stroke-width="2"/>
+              <text x="${X}" y="${y+24}" fill="${COL.sub}" font-size="11" text-anchor="middle">${v}</text>`; }
+    const A=sx(p.from), B=sx(p.to), mid=(A+B)/2, top=y-34;
+    inner+=`<path d="M${A} ${y-4} Q ${mid} ${top} ${B} ${y-4}" fill="none" stroke="${p.add?COL.green:COL.orange}" stroke-width="3" marker-end="url(#ah)"/>
+      <defs><marker id="ah" markerWidth="10" markerHeight="10" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="${p.add?COL.green:COL.orange}"/></marker></defs>
+      <text x="${mid}" y="${top-4}" fill="${p.add?COL.green:COL.orange}" font-size="13" text-anchor="middle" font-weight="700">${p.add?'＋':'−'}${p.amt}</text>
+      <circle cx="${A}" cy="${y}" r="5" fill="${COL.blue}"/>`;
+    return svg(inner,150);
+  }
+
+  function diaArray(p){ // かけ算の格子 a行 × b列
+    const cell=Math.min(26, 200/Math.max(p.a,p.b)), gap=cell+4, x0=40,y0=24, r=cell/2-3;
+    let inner="";
+    for(let i=0;i<p.a;i++)for(let j=0;j<p.b;j++)
+      inner+=`<circle cx="${x0+j*gap}" cy="${y0+i*gap}" r="${r>4?r:4}" fill="${COL.purple}"/>`;
+    const h=y0+p.a*gap+10, w=x0+p.b*gap;
+    inner+=`<text x="${x0-16}" y="${y0+(p.a*gap)/2}" fill="${COL.sub}" font-size="13" text-anchor="middle">${p.a}行</text>
+            <text x="${x0+(p.b*gap)/2-gap/2}" y="${y0-8}" fill="${COL.sub}" font-size="13" text-anchor="middle">${p.b}列</text>`;
+    return svg(inner, h<120?120:h);
+  }
+
+  function diaGroups(p){ // わり算：total個を g グループに均等配分
+    const per=p.total/p.g, r=11, x0=30, gw=Math.min(120,(280)/p.g - 6), y0=30;
+    let inner="";
+    for(let k=0;k<p.g;k++){
+      const gx=x0+k*(gw+8);
+      inner+=`<rect x="${gx-6}" y="${y0-6}" width="${gw}" height="${gw}" rx="10" fill="none" stroke="${COL.grid}" stroke-width="2"/>`;
+      const cols=Math.ceil(Math.sqrt(per));
+      for(let i=0;i<per;i++){
+        const cx=gx+8+(i%cols)*(r*1.7), cy=y0+8+Math.floor(i/cols)*(r*1.7);
+        inner+=`<circle cx="${cx}" cy="${cy}" r="${r}" fill="${COL.teal}"/>`;
+      }
+      inner+=`<text x="${gx-6+gw/2}" y="${y0+gw+14}" fill="${COL.sub}" font-size="11" text-anchor="middle">グループ${k+1}</text>`;
+    }
+    return svg(inner, 160);
+  }
+
+  function diaPie(p){ // 円グラフ n等分のうち k個に色
+    const cx=160,cy=88,rad=66, n=p.n, k=p.k; let inner="";
+    for(let i=0;i<n;i++){
+      const a0=(i/n)*2*Math.PI - Math.PI/2, a1=((i+1)/n)*2*Math.PI - Math.PI/2;
+      const x0=cx+rad*Math.cos(a0), y0=cy+rad*Math.sin(a0);
+      const x1=cx+rad*Math.cos(a1), y1=cy+rad*Math.sin(a1);
+      const large=(a1-a0)>Math.PI?1:0;
+      inner+=`<path d="M${cx} ${cy} L${x0.toFixed(1)} ${y0.toFixed(1)} A${rad} ${rad} 0 ${large} 1 ${x1.toFixed(1)} ${y1.toFixed(1)} Z"
+        fill="${i<k?COL.pink:'#1b2046'}" stroke="#0f1226" stroke-width="2"/>`;
+    }
+    return svg(inner,176);
+  }
+
+  function diaPropbar(p){ // 割合バー：total分割のうち part個に色 ＋ 100スケール対応
+    const x0=24,x1=296,W=x1-x0,y=46,h=30, seg=W/p.total;
+    let inner=`<text x="24" y="30" fill="${COL.sub}" font-size="12">全体を ${p.total} に分けたうち ${p.part} 個</text>`;
+    for(let i=0;i<p.total;i++)
+      inner+=`<rect x="${x0+i*seg}" y="${y}" width="${seg-1.5}" height="${h}" rx="3"
+        fill="${i<p.part?COL.green:'#1b2046'}" stroke="#0f1226"/>`;
+    // 100スケール
+    const y2=110;
+    inner+=`<text x="24" y="${y2-8}" fill="${COL.sub}" font-size="12">同じ割合を「100」で見ると…</text>
+      <rect x="${x0}" y="${y2}" width="${W}" height="${h}" rx="5" fill="#1b2046" stroke="${COL.grid}"/>
+      <rect x="${x0}" y="${y2}" width="${(p.part/p.total)*W}" height="${h}" rx="5" fill="${COL.amber}"/>
+      <text x="${x0+(p.part/p.total)*W/2}" y="${y2+20}" fill="#2a1c00" font-size="13" font-weight="800" text-anchor="middle">?%</text>`;
+    return svg(inner,160);
+  }
+
+  function diaBars(p){ // 平均：複数の棒＋平均線
+    const x0=44,base=130, bw=40, gap=22, maxV=Math.max(...p.vals)*1.15;
+    const sh=v=>(v/maxV)*92;
+    let inner=`<line x1="30" y1="${base}" x2="300" y2="${base}" stroke="${COL.sub}" stroke-width="2"/>`;
+    p.vals.forEach((v,i)=>{ const x=x0+i*(bw+gap), hh=sh(v);
+      inner+=`<rect x="${x}" y="${base-hh}" width="${bw}" height="${hh}" rx="5" fill="${COL.blue}"/>
+              <text x="${x+bw/2}" y="${base-hh-6}" fill="${COL.ink}" font-size="13" text-anchor="middle" font-weight="700">${v}</text>
+              <text x="${x+bw/2}" y="${base+16}" fill="${COL.sub}" font-size="11" text-anchor="middle">${i+1}回目</text>`;
+    });
+    const ay=base-sh(p.avg);
+    inner+=`<line x1="34" y1="${ay}" x2="300" y2="${ay}" stroke="${COL.amber}" stroke-width="2" stroke-dasharray="6 4"/>
+            <text x="300" y="${ay-5}" fill="${COL.amber}" font-size="12" text-anchor="end" font-weight="700">平均 ?</text>`;
+    return svg(inner,150);
+  }
+
+  function diaClock(p){ // 時計：h時0分
+    const cx=160,cy=90,rad=72; let inner=`<circle cx="${cx}" cy="${cy}" r="${rad}" fill="#11163a" stroke="${COL.grid}" stroke-width="4"/>`;
+    for(let i=1;i<=12;i++){ const a=(i/12)*2*Math.PI-Math.PI/2;
+      inner+=`<text x="${cx+(rad-16)*Math.cos(a)}" y="${cy+(rad-16)*Math.sin(a)+5}" fill="${COL.ink}" font-size="14" text-anchor="middle" font-weight="700">${i}</text>`; }
+    const ha=(p.h%12)/12*2*Math.PI-Math.PI/2; // 短針
+    inner+=`<line x1="${cx}" y1="${cy}" x2="${cx+34*Math.cos(ha)}" y2="${cy+34*Math.sin(ha)}" stroke="${COL.orange}" stroke-width="6" stroke-linecap="round"/>`;
+    const ma=-Math.PI/2; // 長針 12
+    inner+=`<line x1="${cx}" y1="${cy}" x2="${cx+52*Math.cos(ma)}" y2="${cy+52*Math.sin(ma)}" stroke="${COL.blue}" stroke-width="4" stroke-linecap="round"/>
+            <circle cx="${cx}" cy="${cy}" r="5" fill="${COL.amber}"/>`;
+    return svg(inner,180);
+  }
+
+  function diaCoins(p){ // お金：コインを並べる
+    const order=[500,100,50,10,5,1]; const colMap={500:COL.amber,100:"#c9cdd6",50:"#c9cdd6",10:COL.orange,5:COL.amber,1:"#c9cdd6"};
+    let x=40,y=50,inner=""; let idx=0;
+    order.forEach(v=>{ const c=p.coins[v]||0; for(let i=0;i<c;i++){
+      inner+=`<circle cx="${x}" cy="${y}" r="20" fill="${colMap[v]}" stroke="#0f1226" stroke-width="2"/>
+              <text x="${x}" y="${y+5}" fill="#1a1a1a" font-size="13" text-anchor="middle" font-weight="800">${v}</text>`;
+      idx++; x+=48; if(x>290){x=40;y+=52;} } });
+    return svg(inner, y+40);
+  }
+
+  function diaEmoji(p){ // 大きな絵文字（国旗・動物など）／サブ文字つき
+    const sub = p.sub? `<text x="160" y="150" fill="${COL.sub}" font-size="14" text-anchor="middle">${p.sub}</text>`:"";
+    return svg(`<text x="160" y="105" font-size="86" text-anchor="middle">${p.char}</text>${sub}`,170);
+  }
+  function diaWord(p){ // 大きな文字（漢字・ことば）
+    const fs = p.word.length<=2?72 : p.word.length<=4?52:38;
+    const sub = p.sub? `<text x="160" y="150" fill="${COL.sub}" font-size="14" text-anchor="middle">${p.sub}</text>`:"";
+    return svg(`<rect x="70" y="22" width="180" height="100" rx="14" fill="#11163a" stroke="${COL.grid}" stroke-width="2"/>
+      <text x="160" y="92" fill="${COL.ink}" font-size="${fs}" text-anchor="middle" font-weight="800">${p.word}</text>${sub}`,170);
+  }
+  function renderDia(d){
+    if(!d) return "";
+    switch(d.type){
+      case"dots":return diaDots(d); case"numberline":return diaNumberline(d);
+      case"array":return diaArray(d); case"groups":return diaGroups(d);
+      case"pie":return diaPie(d); case"propbar":return diaPropbar(d);
+      case"bars":return diaBars(d); case"clock":return diaClock(d);
+      case"coins":return diaCoins(d); case"emoji":return diaEmoji(d);
+      case"word":return diaWord(d); default:return "";
+    }
+  }
+
+  /* ---------- スキル定義（ジェネレーター付き） ----------
+     gen() は {text, dia, answer, distractors, unit, hook} を返す。
+     answer は「値」。エンジンが answer＋distractors をシャッフルして選択肢にする。 */
+  const SKILLS = {
+    count:{ name:"かずをかぞえる", emoji:"🔢", band:"low", field:"math", prereq:null,
+      hint:"数えるのが基礎の基礎。指を使ってOK。『いっしょに数えてみよう』と隣で声を合わせるのが効果的です。",
+      gen(){ const n=R(3,9);
+        return {hook:"○をかぞえてみよう", text:`青い○は ぜんぶで 何こ？`,
+          dia:{type:"dots",a:n,b:null,cross:null},
+          answer:n, distractors:[n-1,n+1,n+2], unit:"こ"}; } },
+
+    add1:{ name:"たし算（1けた）", emoji:"➕", band:"low", field:"math", prereq:"count",
+      hint:"くり上がりの前段階。図のドットを『合わせると何個？』と一緒に数えると“たし算＝合わせる”が体で分かります。",
+      gen(){ const a=R(1,5),b=R(1,9-a>0?9-a:1); const bb=Math.min(b,9-a);
+        return {hook:"合わせると何こ？", text:`青○が ${a}こ、黄○が ${bb}こ。あわせて 何こ？`,
+          dia:{type:"dots",a:a,b:bb,cross:null}, answer:a+bb, distractors:[a+bb-1,a+bb+1,a+bb+2], unit:"こ"}; } },
+
+    sub1:{ name:"ひき算（1けた）", emoji:"➖", band:"low", field:"math", prereq:"add1",
+      hint:"×印で消えた数を数えると“残り”が見えます。『何個なくなった？残りは？』の2段階で聞くと理解が進みます。",
+      gen(){ const a=R(5,9),c=R(1,a-1);
+        return {hook:"のこりは何こ？", text:`○が ${a}こ。そのうち ${c}こ に ×。のこりは 何こ？`,
+          dia:{type:"dots",a:a,b:null,cross:c}, answer:a-c, distractors:[a-c-1,a-c+1,a], unit:"こ"}; } },
+
+    add2:{ name:"たし算（くり上がり）", emoji:"🔟", band:"mid", field:"math", prereq:"add1",
+      hint:"数直線で『今ここから○つ進む』と動きで見せます。くり上がりは10のまとまりを意識させると安定します。",
+      gen(){ const a=R(6,29),b=R(5,20); const max=Math.ceil((a+b)/10)*10+5;
+        return {hook:"数直線で考えよう", text:`${a} + ${b} は いくつ？`,
+          dia:{type:"numberline",from:a,to:a+b,amt:b,add:true,max:max,step:5},
+          answer:a+b, distractors:[a+b-1,a+b+1,a+b-10], unit:""}; } },
+
+    sub2:{ name:"ひき算（2けた）", emoji:"📉", band:"mid", field:"math", prereq:"add2",
+      hint:"数直線を左に戻すイメージ。『○から○つ戻ると？』。くり下がりが苦手ならadd2(たし算)に戻ると効きます。",
+      gen(){ const a=R(20,60),b=R(8,a-5); const max=Math.ceil(a/10)*10+5;
+        return {hook:"数直線で考えよう", text:`${a} − ${b} は いくつ？`,
+          dia:{type:"numberline",from:a,to:a-b,amt:b,add:false,max:max,step:5},
+          answer:a-b, distractors:[a-b-1,a-b+1,a-b+10], unit:""}; } },
+
+    mul1:{ name:"かけ算（九九）", emoji:"✖️", band:"mid", field:"math", prereq:"add2",
+      hint:"格子の点を『○のかたまりが○つ』と見ると、かけ算＝たし算の近道だと分かります。図の縦×横を一緒に数えて。",
+      gen(){ const a=R(2,9),b=R(2,9);
+        return {hook:"かたまりで数えよう", text:`${a} × ${b} は いくつ？（${a}が${b}つ）`,
+          dia:{type:"array",a:a,b:b}, answer:a*b, distractors:[a*b-a,a*b+b,a*b+a,a*b-b], unit:""}; } },
+
+    div1:{ name:"わり算（分ける）", emoji:"➗", band:"mid", field:"math", prereq:"mul1",
+      hint:"『同じ数ずつ箱に配る』のが割り算。図のグループに均等に入る様子を見せ、九九の逆だと気づかせると速いです。",
+      gen(){ const g=R(2,5),per=R(2,6),total=g*per;
+        return {hook:"同じ数ずつ分けよう", text:`${total}こ を ${g}人で 同じ数ずつ。1人 何こ？`,
+          dia:{type:"groups",total:total,g:g}, answer:per, distractors:[per-1,per+1,g,total-g], unit:"こ"}; } },
+
+    fraction:{ name:"分数の大きさ", emoji:"🍕", band:"high", field:"math", prereq:"div1",
+      hint:"ピザの絵で『全体を何個に分けて、何個ぶん？』。下の数＝分けた数、上の数＝とった数、と図で対応させて。",
+      gen(){ const n=pick([2,3,4,5,6,8]),k=R(1,n-1);
+        const mk=(a,b)=>`${a}/${b}`;
+        const ds=uniq([mk(k+1,n),mk(k,n+1),mk(n-k,n),mk(1,n)]).filter(x=>x!==mk(k,n)).slice(0,3);
+        return {hook:"色は全体のどれだけ？", text:`円を ${n}等分。色がついた部分は 全体の どれだけ？`,
+          dia:{type:"pie",n:n,k:k}, answer:mk(k,n), distractors:ds, unit:"", isText:true}; } },
+
+    percent:{ name:"割合・パーセント", emoji:"％", band:"high", field:"money", prereq:"mul1",
+      hint:"%は『100にそろえた時いくつ』。図の上段(実際の数)と下段(100スケール)の対応がカギ。割合が苦手ならmul1へ。",
+      gen(){ const total=pick([2,4,5,10,20,25,50]),part=R(1,total-1); const pct=part*(100/total);
+        return {hook:"100にそろえると何%？", text:`全体 ${total} のうち ${part}。これは 何 % ？`,
+          dia:{type:"propbar",total:total,part:part}, answer:pct, distractors:[pct+10,pct-10,part,100-pct].filter(x=>x>0), unit:"%"}; } },
+
+    average:{ name:"平均", emoji:"📊", band:"high", field:"math", prereq:"div1",
+      hint:"平均＝でこぼこを平らにならした高さ。棒グラフの点線が平均線。『全部足して回数で割る』を図で確認させて。",
+      gen(){ const m=pick([60,70,75,80,85,90]),d=pick([5,10]); const vals=[m-d,m,m+d];
+        for(let i=vals.length-1;i>0;i--){const j=R(0,i);[vals[i],vals[j]]=[vals[j],vals[i]];}
+        return {hook:"ならすと何点？", text:`テスト ${vals.join("点・")}点。平均は 何点？`,
+          dia:{type:"bars",vals:vals,avg:m}, answer:m, distractors:[m-d,m+d,vals[0]], unit:"点"}; } },
+
+    time:{ name:"時計（何時）", emoji:"🕐", band:"low", field:"math", prereq:"count",
+      hint:"短い針＝時、長い針＝分。まず短針だけに注目。『短い針はどの数字をさしてる？』と1つずつ。",
+      gen(){ const h=R(1,12);
+        return {hook:"短いはりに注目", text:`時計の短いはりは 何時を さしてる？`,
+          dia:{type:"clock",h:h}, answer:h, distractors:[h===12?1:h+1,h===1?12:h-1,(h+6)>12?h-6:h+6], unit:"時"}; } },
+
+    money:{ name:"お金の計算", emoji:"💰", band:"low", field:"money", prereq:"add1",
+      hint:"硬貨の額を声に出して足していくと位取りの練習にも。『100が1つで100、10が2つで20…』とまとめて数えて。",
+      gen(){ const c100=R(0,3),c10=R(0,4),c50=R(0,1),c5=R(0,1),c1=R(0,4);
+        const coins={100:c100,50:c50,10:c10,5:c5,1:c1};
+        const sum=c100*100+c50*50+c10*10+c5*5+c1*1;
+        if(sum===0) return this.gen();
+        return {hook:"ぜんぶでいくら？", text:`コインを ぜんぶ 合わせると いくら？`,
+          dia:{type:"coins",coins:coins}, answer:sum, distractors:[sum-10,sum+10,sum-1,sum+5].filter(x=>x>0), unit:"円"}; } },
+  };
+
+  // 帯ごとのスキルの並び（advance に使う）
+  const BAND_ORDER = {
+    low:  ["count","add1","sub1","time","money"],
+    mid:  ["add2","sub2","mul1","div1"],
+    high: ["fraction","percent","average"],
+  };
+  BAND_ORDER.all = [...BAND_ORDER.low,...BAND_ORDER.mid,...BAND_ORDER.high];
+
+  const BANDS_META = {
+    all:{name:"ぜんぶ",sub:"おまかせ"},
+    low:{name:"低学年",sub:"小1〜2"},
+    mid:{name:"中学年",sub:"小3〜4"},
+    high:{name:"高学年",sub:"小5〜"},
+  };
+
+  // つながる分野チップ用
+  const FIELDS = {
+    math:{name:"算数・数学",emoji:"🔢"}, money:{name:"お金・経済",emoji:"💰"},
+    science:{name:"理科",emoji:"🔬"}, tech:{name:"テクノロジー",emoji:"💻"},
+    cooking:{name:"料理",emoji:"🍳"}, sports:{name:"スポーツ",emoji:"⚽"},
+    daily:{name:"毎日のくらし",emoji:"🏠"}, game:{name:"ゲーム",emoji:"🎮"},
+    lang:{name:"ことば",emoji:"✍️"}, nature:{name:"しぜん",emoji:"🌿"},
+    geo:{name:"せかい・地理",emoji:"🗺️"}, health:{name:"からだ",emoji:"🫀"},
+    food:{name:"たべもの",emoji:"🍙"}, history:{name:"れきし",emoji:"🏯"},
+  };
+
+  // 各スキルの「実生活」と「つながる分野」（取りかかりのハードルを下げる）
+  const META = {
+    count:  {real:"おやつの数、ならんだ人数、サイコロの目。数えられると“いくつ？”に自分で答えられる。", conn:["daily","game"]},
+    add1:   {real:"おこづかいを合わせる、ポイントをためる。たし算は1日で一番使う計算。", conn:["money","daily"]},
+    sub1:   {real:"おつり、残りのページ数、HPの減り。ひき算は“あといくつ”が分かる力。", conn:["money","game"]},
+    add2:   {real:"買い物の合計、歩いた歩数、点数の合計。大きい数のたし算は生活の中心。", conn:["money","sports"]},
+    sub2:   {real:"残り時間、おつり、タイムの差。引き算が速いと段取り上手になる。", conn:["money","sports"]},
+    mul1:   {real:"まとめ買い、人数分の用意、面積。九九は“同じ数のかたまり”を一瞬で出す魔法。", conn:["cooking","money"]},
+    div1:   {real:"おかしを分ける、チーム分け、レシピを人数で割る。公平に分ける力。", conn:["cooking","game"]},
+    fraction:{real:"ピザやケーキを分ける、レシピの1/2。分数は“分け前”そのもの。", conn:["cooking","daily"]},
+    percent:{real:"セールの%オフ、電池の残量、テストの正答率。だまされない買い物力。", conn:["money","game"]},
+    average:{real:"平均点、平均気温、打率。ニュースは平均だらけ。意味が分かると数字に強くなる。", conn:["sports","science"]},
+    time:   {real:"〇時に集合、テレビの時間、ゲームは30分まで。時計が読めると自分で動ける。", conn:["daily","game"]},
+    money:  {real:"レジでお金を出す、おつりを確かめる。お金の計算は生きる力に直結。", conn:["money","daily"]},
+  };
+
+  /* ============================================================
+     トリビア科目（ことば・理科・世界・生活）
+     ・プールから毎回ランダムに出題（飽きにくい）
+     ・正解はエンジン側でシャッフル
+     ・各問に「へぇ！」解説・実生活・つながる分野
+     ============================================================ */
+  const shuf = a => { a=a.slice(); for(let i=a.length-1;i>0;i--){const j=R(0,i);[a[i],a[j]]=[a[j],a[i]];} return a; };
+  // プールから answer 以外の値を3つ取り出す
+  function others(pool, key, fn){ return shuf(pool.filter(x=>fn(x)!==key)).slice(0,3).map(fn); }
+
+  // ことば：漢字の読み
+  const KANJI=[["山","やま"],["川","かわ"],["火","ひ"],["水","みず"],["木","き"],["空","そら"],
+    ["花","はな"],["犬","いぬ"],["雨","あめ"],["月","つき"],["星","ほし"],["海","うみ"],
+    ["森","もり"],["風","かぜ"],["雪","ゆき"],["糸","いと"],["貝","かい"],["竹","たけ"]];
+  // ことば：反対のことば
+  const OPP=[["大きい","小さい"],["高い","ひくい"],["長い","みじかい"],["多い","少ない"],
+    ["明るい","くらい"],["あつい","さむい"],["速い","おそい"],["重い","かるい"],
+    ["新しい","古い"],["強い","弱い"],["広い","せまい"],["うれしい","かなしい"]];
+  // ことば：数え方
+  const COUNT=[["🐈 ねこ","ひき"],["📄 かみ","まい"],["🚗 くるま","だい"],["📚 本","さつ"],
+    ["✏️ えんぴつ","ほん"],["🐦 とり","わ"],["🍞 食パン","きん"],["👕 服","まい"]];
+  const COUNTERS=["ひき","まい","だい","さつ","ほん","わ","こ","きん"];
+
+  // 理科：生きものの分類（おどろきトリビア多め）
+  const ANIMAL=[["🦇 コウモリ","けもの","空をとぶけど、子を乳で育てる“けもの（ほ乳類）”！鳥じゃないんだ。"],
+    ["🐬 イルカ","けもの","魚に見えて、肺で息をする“けもの”。だから時々水面に上がる。"],
+    ["🐳 クジラ","けもの","地球で一番大きい動物シロナガスクジラも“けもの”。赤ちゃんに母乳をあげる。"],
+    ["🐧 ペンギン","とり","泳ぐのが得意だけど“鳥”。空は飛べないけど水の中を飛ぶように泳ぐ。"],
+    ["🦈 サメ","さかな","エラで呼吸する“魚”。でも骨がやわらかい軟骨でできている。"],
+    ["🐸 カエル","りょうせいるい","子（オタマジャクシ）は水中、大人は陸。両方で生きる“両生類”。"],
+    ["🐍 ヘビ","はちゅうるい","体温を自分で作れず、日なたで温まる“は虫類”。"],
+    ["🦋 チョウ","むし","あしが6本あるのが“虫（こん虫）”の目印。"]];
+  const ACLASS=["けもの","とり","さかな","むし","りょうせいるい","はちゅうるい"];
+
+  // 理科：すがた（固体・液体・気体）
+  const STATE=[["🧊 氷","こたい"],["💧 水","えきたい"],["♨️ 湯気","きたい"],
+    ["🪨 石","こたい"],["🥛 牛にゅう","えきたい"],["🎈 空気","きたい"]];
+  const STATES=["こたい","えきたい","きたい"];
+
+  // 理科：からだ・自然の雑学（固定Q）
+  const SCITRIVIA=[
+    {q:"心臓のおもな仕事は？",a:"血を全身に送る",d:["食べ物をけす","考える","息をする"],e:"心臓は1日に約10万回動くポンプ。休まず血を全身にめぐらせている。",real:"運動で胸がドキドキするのは心臓ががんばっている合図。",conn:["health","sports"]},
+    {q:"にじは ふつう何色といわれる？",a:"7色",d:["3色","5色","100色"],e:"本当は境目なくつながる無限の色。ニュートンが音階に合わせ7色と決めた。",real:"雨上がり、太陽を背にすると虹が見える。光の角度がカギ。",conn:["science","nature"]},
+    {q:"星の光は“いつの光”を見ている？",a:"ずっと昔の光",d:["今の光","明日の光","音"],e:"星は遠く、光が届くのに何年もかかる。今見える星は過去のすがた。",real:"GPSも光（電波）の届く時間で位置を計算している。",conn:["science","tech"]},
+    {q:"植物が日光を浴びて作るのは？",a:"栄養（とさんそ）","d":["土","水だけ","音"],e:"葉が日光で栄養と酸素を作る“光合成”。地球の酸素の多くは植物のおかげ。",real:"森や海の植物プランクトンが、わたしたちの吸う酸素を作っている。",conn:["science","nature"]},
+  ];
+
+  // 世界：国旗
+  const FLAG=[["🇯🇵","日本"],["🇺🇸","アメリカ"],["🇰🇷","かんこく"],["🇨🇳","ちゅうごく"],
+    ["🇫🇷","フランス"],["🇧🇷","ブラジル"],["🇮🇹","イタリア"],["🇬🇧","イギリス"],
+    ["🇩🇪","ドイツ"],["🇪🇬","エジプト"],["🇮🇳","インド"],["🇨🇦","カナダ"],["🇦🇺","オーストラリア"]];
+  // 世界：あいさつ（こんにちは）
+  const HELLO=[["🇺🇸 英語","ハロー"],["🇨🇳 中国語","ニーハオ"],["🇫🇷 フランス語","ボンジュール"],
+    ["🇰🇷 かんこく語","アンニョン"],["🇮🇹 イタリア語","チャオ"],["🌺 ハワイ","アロハ"],["🇪🇸 スペイン語","オラ"]];
+  const HELLOS=["ハロー","ニーハオ","ボンジュール","アンニョン","チャオ","アロハ","オラ"];
+
+  // 生活：身のまわり
+  const LIFE=[
+    {q:"信号の「赤」は何の合図？",a:"とまれ",d:["すすめ","ちゅうい","まがれ"],char:"🔴",e:"赤は世界共通で“止まれ”。遠くからでも目立つ色だから選ばれた。",real:"道路をわたる前に必ず確認。命を守るルール。",conn:["daily","geo"]},
+    {q:"1週間は何日？",a:"7日",d:["5日","6日","10日"],char:"📅",e:"月・火・水・木・金・土・日の7日。星や神さまの名前が由来。",real:"予定や時間割は1週間でくり返す。曜日が分かると先の見通しが立つ。",conn:["daily","science"]},
+    {q:"1年は何か月？",a:"12か月",d:["10か月","7か月","24か月"],char:"🗓️",e:"地球が太陽を1周する間が1年＝12か月。季節が一回りする。",real:"誕生日や行事は1年でひとめぐり。カレンダーの基本。",conn:["daily","science"]},
+    {q:"火事のときに呼ぶ番号は？",a:"119",d:["110","117","911"],char:"🚒",e:"日本では火事・救急は119、事件・事故は110。覚えておくと安心。",real:"いざという時に自分で電話できる力は、立派な“生きる力”。",conn:["daily","health"]},
+    {q:"日本でいちばん高い山は？",a:"富士山",d:["エベレスト","高尾山","あさま山"],char:"🗻",e:"富士山は3776m。きれいな形で昔から絵や歌になってきた日本の象徴。",real:"お札や絵にもよく登場。地元の山の高さも調べると面白い。",conn:["geo","history"]},
+  ];
+
+  // 各トリビア科目のジェネレーター（共通の正規化フォーマットを返す）
+  const TRIVIA = {
+    kanji:{ cat:"kotoba", name:"漢字のよみ", emoji:"✍️",
+      gen(){ const it=pick(KANJI);
+        return {hook:"この漢字、なんて読む？", text:`「${it[0]}」の よみ方は？`,
+          dia:{type:"word",word:it[0]}, answer:it[1], distractors:others(KANJI,it[1],x=>x[1]), isText:true,
+          explain:`「${it[0]}」は「${it[1]}」。声に出すと覚えやすい。`,
+          real:"看板・本・ゲームの文字…漢字が読めると世界がぐっと広がる。", conn:["lang","daily"]}; } },
+    opp:{ cat:"kotoba", name:"反対のことば", emoji:"🔁",
+      gen(){ const it=pick(OPP), flip=R(0,1); const w=it[flip], a=it[1-flip];
+        const ds=shuf(OPP.flatMap(p=>p).filter(x=>x!==a&&x!==w)).slice(0,3);
+        return {hook:"反対のことばは？", text:`「${w}」の 反対は？`,
+          dia:{type:"word",word:w}, answer:a, distractors:ds, isText:true,
+          explain:`「${w}」⇔「${a}」。反対語はセットで覚えるとお得。`,
+          real:"気持ちや様子を正しく伝えられる。作文や会話の表現力アップ。", conn:["lang","daily"]}; } },
+    counter:{ cat:"kotoba", name:"数え方", emoji:"🔢",
+      gen(){ const it=pick(COUNT);
+        return {hook:"正しい数え方は？", text:`${it[0]} を 1つ数えるとき、正しいのは？`,
+          dia:{type:"emoji",char:it[0].split(" ")[0],sub:it[0].split(" ")[1]}, answer:it[1],
+          distractors:shuf(COUNTERS.filter(x=>x!==it[1])).slice(0,3), isText:true,
+          explain:`${it[0]} は「1${it[1]}」と数える。日本語は物ごとに数え方が変わる珍しい言語。`,
+          real:"お店やお手伝いで「○まい」「○こ」と正しく言えると伝わりやすい。", conn:["lang","daily"]}; } },
+    animal:{ cat:"science", name:"生きものの分類", emoji:"🦁",
+      gen(){ const it=pick(ANIMAL);
+        return {hook:"これは何のなかま？", text:`${it[0]} は どのなかま？`,
+          dia:{type:"emoji",char:it[0].split(" ")[0],sub:it[0].split(" ")[1]}, answer:it[1],
+          distractors:shuf(ACLASS.filter(x=>x!==it[1])).slice(0,3), isText:true,
+          explain:it[2], real:"動物園や図かんが何倍も面白くなる。見分けのコツが身につく。", conn:["science","nature"]}; } },
+    state:{ cat:"science", name:"すがた（こたい・えきたい・きたい）", emoji:"🧊",
+      gen(){ const it=pick(STATE);
+        return {hook:"これは どのすがた？", text:`${it[0]} は こたい・えきたい・きたい の どれ？`,
+          dia:{type:"emoji",char:it[0].split(" ")[0],sub:it[0].split(" ")[1]}, answer:it[1],
+          distractors:STATES.filter(x=>x!==it[1]), isText:true,
+          explain:`${it[0]} は「${it[1]}」。水は冷えると氷(こたい)、温めると湯気(きたい)に姿を変える。`,
+          real:"料理（こおらす・とかす・むす）はすがたの変化そのもの。", conn:["science","cooking"]}; } },
+    scitrivia:{ cat:"science", name:"りかの雑学", emoji:"🔬",
+      gen(){ const it=pick(SCITRIVIA);
+        return {hook:"へぇ！となる理科クイズ", text:it.q, dia:{type:"emoji",char:"🔬"},
+          answer:it.a, distractors:it.d, isText:true, explain:it.e, real:it.real, conn:it.conn}; } },
+    flag:{ cat:"world", name:"国旗クイズ", emoji:"🚩",
+      gen(){ const it=pick(FLAG);
+        return {hook:"この国旗、どこの国？", text:`この国旗は どこの国？`,
+          dia:{type:"emoji",char:it[0]}, answer:it[1], distractors:others(FLAG,it[1],x=>x[1]), isText:true,
+          explain:`これは ${it[1]} の国旗。旗の色や形には、その国の歴史や願いがこめられている。`,
+          real:"オリンピックやサッカー、ニュースの世界地図がわかるようになる。", conn:["geo","history"]}; } },
+    hello:{ cat:"world", name:"世界のあいさつ", emoji:"👋",
+      gen(){ const it=pick(HELLO);
+        return {hook:"「こんにちは」は何という？", text:`${it[0]} で「こんにちは」は？`,
+          dia:{type:"emoji",char:it[0].split(" ")[0]}, answer:it[1],
+          distractors:shuf(HELLOS.filter(x=>x!==it[1])).slice(0,3), isText:true,
+          explain:`${it[0]} の「こんにちは」は「${it[1]}」。あいさつは世界中の人と仲よくなる魔法の言葉。`,
+          real:"外国の人に出会ったとき、ひと言いえるだけで笑顔になってもらえる。", conn:["geo","lang"]}; } },
+    life:{ cat:"life", name:"せいかつの知恵", emoji:"🏠",
+      gen(){ const it=pick(LIFE);
+        return {hook:"知ってると役立つクイズ", text:it.q, dia:{type:"emoji",char:it.char},
+          answer:it.a, distractors:it.d, isText:true, explain:it.e, real:it.real, conn:it.conn}; } },
+  };
+
+  // 科目カテゴリ（こども向けの選択肢）
+  const CATEGORIES = {
+    mix:    {name:"ミックス", emoji:"🎲"},
+    math:   {name:"かず",     emoji:"🔢"},
+    kotoba: {name:"ことば",   emoji:"✍️"},
+    science:{name:"りか",     emoji:"🔬"},
+    world:  {name:"せかい",   emoji:"🌍"},
+    life:   {name:"せいかつ", emoji:"🏠"},
+  };
+  // ミックスの回し順（同じ科目が連続しない／算数は約1/3）
+  const MIX_CYCLE = ["kotoba","math","science","world","math","life"];
+  // カテゴリ→トリビアgenのid一覧
+  const CAT_TRIVIA = {
+    kotoba:["kanji","opp","counter"], science:["animal","state","scitrivia"],
+    world:["flag","hello"], life:["life"],
+  };
+
+  window.ENGINE = {SKILLS, BAND_ORDER, BANDS_META, FIELDS, META, TRIVIA, CATEGORIES, MIX_CYCLE, CAT_TRIVIA, renderDia, R, pick};
+})();
+
+</script>
+<script>
+/* ============================================================
+   今日の一問 — 追加トピック（ゲーム軸＋小学〜高校範囲）
+   ・skills.js の後に読み込み、window.ENGINE を拡張する
+   ・各問: {q, a, d:[錯乱肢], e:解説, real:実生活, conn:[分野], lv:1小/2中/3高, char:絵文字}
+   ・解説にゼルダ／ホグワーツ等のゲームの例えを多用（食いつき重視）
+   ============================================================ */
+(function(){
+  const E = window.ENGINE; if(!E){ console.error("skills.js を先に読み込んでください"); return; }
+  const pick = E.pick;
+
+  // 出題レベルの範囲（index.html が ENGINE.levelRange を設定。既定は全部）
+  function inRange(lv){ const r=E.levelRange||{min:1,max:3}; return lv>=r.min && lv<=r.max; }
+  function levelPick(pool){ const f=pool.filter(it=>inRange(it.lv||1)); return pick(f.length?f:pool); }
+
+  // プール → トリビア生成関数（共通フォーマット）
+  function quiz(pool, hook){
+    return function(){
+      const it=levelPick(pool);
+      return { hook: hook||"クイズ！", text: it.q,
+        dia:{type:"emoji", char: it.char||"❓"},
+        answer: it.a, distractors: it.d, isText:true,
+        explain: it.e, real: it.real||"", conn: it.conn||[] };
+    };
+  }
+
+  /* ---------------- 🎮 ゲームでまなぶ ---------------- */
+  const GAME = [
+    {q:"ゼルダのリンクが使う『パラセール』。落下がゆっくりになるのは、何の力に逆らっているから？",
+     a:"重力", d:["電気","音","光"], char:"🪂", lv:2,
+     e:"パラセールは空気の抵抗を増やして重力に逆らう。現実のパラシュートと同じ。重力＝地球が物を中心へ引く力。",
+     real:"スカイダイビング、ムササビ、タンポポの種が飛ぶのも同じしくみ。", conn:["science","game"]},
+    {q:"ホグワーツレガシーの『魔法薬学』。材料を混ぜて別のものを作る——現実のどの学問に近い？",
+     a:"化学", d:["歴史","音楽","地理"], char:"⚗️", lv:2,
+     e:"材料を反応させ新しい物質を作るのは化学そのもの。回復薬や爆発薬は化学反応の比喩。",
+     real:"料理も、洗剤が汚れを落とすのも化学反応。", conn:["science","game"]},
+    {q:"多くのゲームのマップは(横,縦)の数で位置を表す。この表し方を何という？",
+     a:"座標", d:["体積","重さ","温度"], char:"🗺️", lv:2,
+     e:"(横,縦)で点を表すのが座標。マインクラフトのX/Y/Z表示や数学のグラフと全く同じ考え方。",
+     real:"GPS・地図アプリ・ドット絵…画面上の点はすべて座標で管理される。", conn:["math","tech","game"]},
+    {q:"ゲームの経験値(EXP)は、レベルが上がるほど次に必要な量が増える。この増え方を何という？",
+     a:"指数的な増加", d:["まっすぐな増加","減る一方","変化なし"], char:"📈", lv:3,
+     e:"最初は楽に上がるのに後半きつくなるのは必要EXPが指数的に増えるから。複利やSNS拡散と同じ形。",
+     real:"貯金の複利、ウイルスの広がりも指数的。グラフが急カーブを描く。", conn:["math","money","game"]},
+    {q:"攻撃力100、相手の防御で30%カット。受けるダメージはいくつ？",
+     a:"70", d:["30","130","100"], char:"⚔️", lv:2,
+     e:"30%カット＝70%が通る。100×0.7＝70。割合(%)はダメージ・会心率・ドロップ率の基本。",
+     real:"セール・税・確率…%が分かるとゲームも買い物も有利になる。", conn:["math","game"]},
+    {q:"ホグワーツの光の呪文『ルーモス』。実は何語が由来？",
+     a:"ラテン語", d:["日本語","ドイツ語","フランス語"], char:"✨", lv:3,
+     e:"lumen＝光(ラテン語)。英語のluminous(光る)も同語源。呪文の多くはラテン語をもじったもの。",
+     real:"英語の難しい単語はラテン語起源が多い。語源を知ると一気に覚えやすい。", conn:["lang","game"]},
+    {q:"ゼルダで高い山に登ると寒くて防寒着が要る。現実でも高い山が寒いのはなぜ？",
+     a:"標高が高いほど気温が下がる", d:["太陽から遠いから","風がないから","夜だから"], char:"🏔️", lv:2,
+     e:"標高が100m上がると約0.6℃下がる。富士山頂は夏でも氷点下近い。ゲームも気温を再現している。",
+     real:"高原が涼しい、山の天気が変わりやすいのも同じ理由。", conn:["science","geo","game"]},
+    {q:"マインクラフトの1ブロックは1m立方。3×3×3に積むと全部で何ブロック？",
+     a:"27", d:["9","18","12"], char:"🧊", lv:2,
+     e:"3×3×3＝27。立方体の体積は たて×よこ×高さ。同じ数を3回かける『3乗(指数)』でもある。",
+     real:"箱に入る数、部屋の広さ、荷物の量…体積は生活のあちこちで使う。", conn:["math","game"]},
+    {q:"ゲームの『60FPS』。1秒間に何枚の絵を表示している？",
+     a:"60枚", d:["6枚","600枚","1枚"], char:"🎞️", lv:2,
+     e:"FPS＝Frames Per Second。パラパラ漫画を1秒に60枚めくる速さ。多いほど動きがなめらか。",
+     real:"アニメは約24枚、映画も24枚。なめらかさの違いはここから来る。", conn:["tech","game"]},
+    {q:"レアドロップ率5%の敵。平均すると何回くらい倒せば1回出る計算？",
+     a:"約20回", d:["約5回","約50回","約100回"], char:"🎲", lv:3,
+     e:"5%＝1/20だから平均20回に1回。あくまで『平均』で運に左右される。これが確率。ガチャの天井もこの考え方。",
+     real:"天気予報の降水確率、くじ引き、保険…世の中は確率だらけ。", conn:["math","game"]},
+    {q:"最大HP200、ポーションでHPの25%回復。何ポイント回復する？",
+     a:"50", d:["25","75","200"], char:"❤️", lv:2,
+     e:"200の25%＝200×0.25＝50。割合はダメージも回復もドロップ率も全部これ。",
+     real:"電池残量、テストの正答率、割引も同じ%の計算。", conn:["math","game"]},
+    {q:"『広さ○km²』のオープンワールド。km²(平方キロメートル)は何を表す単位？",
+     a:"面積", d:["長さ","重さ","時間"], char:"🧭", lv:3,
+     e:"km²は1辺1kmの正方形の面積。面積＝たて×よこ。マップの広さを比べるのに使う。",
+     real:"土地・部屋・公園の広さ、国の大きさ比べもこの単位。", conn:["math","geo","game"]},
+    {q:"カミナリも、ゲーム機やスマホの電気も、正体は同じ。何の流れ？",
+     a:"電子", d:["水","光","音"], char:"⚡", lv:2,
+     e:"超小さな粒『電子』の流れ。コンピュータもゲーム機もこの電子の制御で動いている。",
+     real:"充電・静電気のパチッ・スイッチ…ぜんぶ電子の動き。", conn:["science","tech","game"]},
+    {q:"信長を題材にしたゲームも多い。『天下統一』目前に本能寺で倒れた戦国武将は？",
+     a:"織田信長", d:["徳川家康","坂本龍馬","聖徳太子"], char:"🗡️", lv:2,
+     e:"信長→秀吉→家康と続いて江戸時代へ。ゲームや漫画の超定番キャラ。",
+     real:"全国の城や地名に戦国の名残。旅行や歴史番組が面白くなる。", conn:["history","game"]},
+  ];
+
+  /* ---------------- 🔬 理科（小〜高） ---------------- */
+  const SCIENCE = [
+    {q:"リンゴが下に落ちるのは何の力？", a:"重力", d:["電気","風","音"], char:"🍎", lv:1,
+     e:"地球が物を中心へ引く力＝重力。ゼルダで高所から落ちるのも、ロケットが燃料を使うのも相手は重力。",
+     real:"ボールが落ちる、体重が量れるのも重力のおかげ。", conn:["science","game"]},
+    {q:"水の化学式 H₂O。水素(H)と結びついているのは？", a:"酸素(O)", d:["炭素","鉄","金"], char:"💧", lv:2,
+     e:"水は水素2と酸素1。ホグワーツの魔法薬のように、現実の物も原子の組み合わせでできている。",
+     real:"空気・砂糖・塩…身のまわりの物はすべて原子の組み合わせ。", conn:["science"]},
+    {q:"宇宙でいちばん速いとされるのは？", a:"光", d:["音","ロケット","新幹線"], char:"⚡", lv:3,
+     e:"光は秒速約30万km(1秒で地球7周半)。星の光が『過去の姿』なのもこのため。",
+     real:"光ファイバー通信もこの速さ。ネットが速いのは光のおかげ。", conn:["science","tech"]},
+    {q:"生き物の体をつくる、小さな部屋のような最小単位は？", a:"細胞", d:["原子","電池","骨"], char:"🦠", lv:2,
+     e:"人の体は約37兆個の細胞でできている。1個の受精卵が分裂して増えた結果。",
+     real:"ケガが治る、髪がのびるのも細胞が増えるから。", conn:["science","health"]},
+    {q:"植物が日光で栄養と酸素を作るはたらきは？", a:"光合成", d:["呼吸","蒸発","発電"], char:"🌱", lv:2,
+     e:"葉が日光・水・二酸化炭素から栄養と酸素を作る。地球の酸素の大もと。",
+     real:"森や海の植物が、わたしたちの吸う酸素を作っている。", conn:["science","nature"]},
+    {q:"太陽系で太陽にいちばん近い惑星は？", a:"水星", d:["地球","木星","海王星"], char:"🪐", lv:2,
+     e:"水星→金星→地球→火星…の順。木星は最大の惑星でガスのかたまり。",
+     real:"夜空の『明けの明星』は金星。望遠鏡や星アプリで本物が見られる。", conn:["science","world"]},
+    {q:"生き物の設計図といわれ、体の特徴を親から子へ伝える物質は？", a:"DNA", d:["カルシウム","ビタミン","水"], char:"🧬", lv:3,
+     e:"二重らせん構造の暗号。ゲームの『遺伝』『品種改良』の考え方の元。",
+     real:"親子が似る、血液型が決まるのもDNAのはたらき。", conn:["science","health"]},
+    {q:"エネルギーは消えず形を変えるだけ。これを何の法則という？", a:"エネルギー保存の法則",
+     d:["重力の法則","反射の法則","じゃんけんの法則"], char:"🔋", lv:3,
+     e:"運動→熱→電気…と姿を変えても総量は一定。発電も食事もエネルギーの変換。",
+     real:"スマホの充電(電気→化学)、発電所(運動→電気)も全部これ。", conn:["science","tech"]},
+    {q:"レモンや酢のように『すっぱい』性質を何性という？", a:"酸性", d:["アルカリ性","中性","電気性"], char:"🧪", lv:3,
+     e:"リトマス紙で調べられる。石けんはアルカリ性。魔法薬の調合もpH管理に近い。",
+     real:"胃の中は酸性、虫歯も酸が原因。掃除の洗剤選びにも役立つ。", conn:["science","cooking"]},
+    {q:"音が伝わるのに必要なものは？", a:"空気など(物)", d:["真空","光","電気だけ"], char:"🔊", lv:2,
+     e:"音は空気の振動。だから空気のない宇宙では音は伝わらない(本当の宇宙は静か)。",
+     real:"水中でも音は伝わる。糸電話は糸の振動で声を運ぶ。", conn:["science"]},
+    {q:"磁石が引きつけるのは次のどれ？", a:"鉄", d:["木","プラスチック","ガラス"], char:"🧲", lv:1,
+     e:"鉄やニッケルを引きつける。方位磁針が北を指すのは地球自体が大きな磁石だから。",
+     real:"冷蔵庫のメモ留め、リニアモーターカーも磁石の力。", conn:["science"]},
+    {q:"大人の体の骨はおよそ何本？", a:"約200本", d:["約20本","約2000本","約50本"], char:"🦴", lv:1,
+     e:"赤ちゃんは約300本、成長でくっついて約206本に。体を支え内臓を守る。",
+     real:"骨を強くするにはカルシウムと運動。背が伸びるのも骨の成長。", conn:["health","science"]},
+    {q:"100mを20秒で走った。速さは秒速何m？", a:"5m", d:["2m","20m","120m"], char:"🏃", lv:2,
+     e:"速さ＝距離÷時間＝100÷20＝5。レースゲームの『時速』表示も同じ計算。",
+     real:"電車の速さ、ランニングのペース計算もこれ。", conn:["math","sports","science"]},
+    {q:"北極や南極の近くで空が光る『オーロラ』。原因は太陽から来る何？", a:"太陽風(電気を帯びた粒)",
+     d:["雨雲","月の光","火山の煙"], char:"🌌", lv:3,
+     e:"太陽の粒子が地球の大気とぶつかって発光。北欧やアラスカで見られる絶景。",
+     real:"太陽の活動が活発だと通信や電気にも影響することがある。", conn:["science","geo"]},
+  ];
+
+  /* ---------------- ✍️ ことば（漢字・ことわざ・英語） ---------------- */
+  const KOTOBA = [
+    {q:"『さるも木から落ちる』の意味は？", a:"名人でも失敗することがある", d:["木が好き","運動が得意","高所が苦手"], char:"🐒", lv:2,
+     e:"どんな達人もミスをする。ゲームの上手い人がやられた時にもピッタリ。",
+     real:"失敗しても落ちこみすぎない、という励ましにも使える言葉。", conn:["lang"]},
+    {q:"『一石二鳥』の意味は？", a:"一つで二つの得", d:["石を二回投げる","鳥が二羽いる","二回失敗する"], char:"🀄", lv:3,
+     e:"一つの行動で二つの利益。クエスト一回で報酬が二つ手に入る感じ。",
+     real:"勉強しながら運動、など効率の良いやり方を表すのに便利。", conn:["lang"]},
+    {q:"英語で『sword』の意味は？", a:"剣", d:["盾","弓","鎧"], char:"⚔️", lv:2,
+     e:"shield＝盾, bow＝弓, armor＝鎧。ゲームの装備名は英語だらけ。覚えると有利。",
+     real:"洋ゲーや英語版で意味が分かると世界が広がる。", conn:["lang","game"]},
+    {q:"光を出す魔法によく入る語根 lumen。意味は？", a:"光", d:["闇","水","火"], char:"💡", lv:3,
+     e:"luminous(光る), illuminate(照らす)も同語源。難しい英単語はラテン語起源が多い。",
+     real:"語源を1つ知ると、関連する単語をまとめて覚えられる。", conn:["lang","game"]},
+    {q:"『目からうろこ』の意味は？", a:"急に物事がよく分かること", d:["目が痛い","泣くこと","眠いこと"], char:"👀", lv:2,
+     e:"今までの謎が一気に解ける感覚。攻略のヒントを見た瞬間みたいに。",
+     real:"勉強で『そういうことか!』となった時に使える言葉。", conn:["lang"]},
+    {q:"『過去』の反対のことばは？", a:"未来", d:["現在","昔","歴史"], char:"⏳", lv:2,
+     e:"過去⇔未来。時間を表すセットの言葉。現在は『今』。",
+     real:"作文や会話で時間の流れを正しく伝えられる。", conn:["lang"]},
+    {q:"『リンクが走る』。主語はどれ？", a:"リンクが", d:["走る","リンクが走る","の"], char:"✏️", lv:2,
+     e:"主語＝だれが/何が。述語＝どうする。文の骨組み。",
+     real:"主語と述語が分かると、長い文章も読み解ける。", conn:["lang"]},
+    {q:"『時雨』の読みは？", a:"しぐれ", d:["じう","ときあめ","しぐ"], char:"🌧️", lv:3,
+     e:"秋から冬に降ったりやんだりする雨。難読漢字の代表。",
+     real:"季語として俳句や物語、ゲームの地名にも登場する。", conn:["lang"]},
+    {q:"『たなからぼたもち』の意味は？", a:"思いがけない幸運", d:["お腹がすく","掃除が大変","甘い物好き"], char:"🍡", lv:2,
+     e:"棚から落ちたお餅が口に入る＝ラッキー。レアドロップが出た感じ。",
+     real:"運よく良いことがあった時に使えることわざ。", conn:["lang"]},
+    {q:"『具体的』の反対は？", a:"抽象的", d:["現実的","積極的","平和的"], char:"🔍", lv:3,
+     e:"具体＝はっきり/抽象＝ぼんやり全体。説明が上手になるキーワード。",
+     real:"『もっと具体的に言うと』が言えると話が伝わりやすい。", conn:["lang"]},
+    {q:"『言う』の尊敬語は？", a:"おっしゃる", d:["申す","言わせる","しゃべる"], char:"🙇", lv:3,
+     e:"相手を立てるのが尊敬語。自分の側は『申す』(謙譲語)。使い分けが大人への一歩。",
+     real:"面接や目上の人との会話で役立つ。", conn:["lang","daily"]},
+    {q:"英語で『ありがとう』は？", a:"サンキュー", d:["ハロー","バイバイ","ソーリー"], char:"🙏", lv:1,
+     e:"thank you。sorry＝ごめん, please＝お願い, excuse me＝すみません。",
+     real:"海外の人に出会ったとき、ひと言で笑顔になってもらえる。", conn:["lang","world"]},
+    {q:"『矛盾』の由来。同時に成り立たないのは？", a:"全てを貫く矛と全てを防ぐ盾",
+     d:["速い馬と強い馬","高い山と深い海","赤い花と青い花"], char:"🐉", lv:3,
+     e:"昔の中国の商人の話。話のつじつまが合わないことを指す。",
+     real:"『それ矛盾してない?』と議論で使える。論理的に考える練習にも。", conn:["lang","world"]},
+  ];
+
+  /* ---------------- 🌍 せかい（地理・国） ---------------- */
+  const WORLD = [
+    {q:"アメリカの首都は？", a:"ワシントンD.C.", d:["ニューヨーク","ロサンゼルス","シカゴ"], char:"🏛️", lv:2,
+     e:"最大の都市ニューヨークと首都は別。政治の中心と経済の中心が分かれている。",
+     real:"ニュースの『ワシントン』は政府を指すことが多い。", conn:["geo"]},
+    {q:"ハリー・ポッターのホグワーツがあるのは、どこの国の設定？", a:"イギリス", d:["アメリカ","フランス","日本"], char:"🏰", lv:2,
+     e:"イギリスの全寮制(寄宿)学校がモデル。作者J.K.ローリングもイギリス人。",
+     real:"イギリス英語と城の文化を知ると作品がもっと楽しめる。", conn:["geo","world","game"]},
+    {q:"世界でいちばん大きい大陸は？", a:"ユーラシア大陸", d:["アフリカ大陸","北アメリカ大陸","南極大陸"], char:"🌍", lv:1,
+     e:"アジアとヨーロッパが地続きの巨大大陸。日本もこの近く。",
+     real:"世界地図を見ると大陸の形と国の位置が分かって旅行が楽しくなる。", conn:["geo"]},
+    {q:"地球の表面のおよそ何割が海？", a:"約7割", d:["約3割","約5割","約9割"], char:"🌊", lv:2,
+     e:"7割が海。だから地球は『水の惑星』と呼ばれる。",
+     real:"魚や塩、雨や雲…海は天気や食べ物の元でもある。", conn:["geo","science"]},
+    {q:"日本が昼12時のとき、ほぼ真夜中なのは？", a:"ブラジル", d:["韓国","タイ","中国"], char:"🕐", lv:2,
+     e:"地球の反対側で約12時間差。海外サッカーが日本で深夜中継になる理由。",
+     real:"海外の家族と電話、ゲームの海外サーバーで時差を実感する。", conn:["geo","science"]},
+    {q:"世界一高い山は？", a:"エベレスト", d:["富士山","モンブラン","キリマンジャロ"], char:"🏔️", lv:2,
+     e:"約8849m。ヒマラヤ山脈にある。富士山(3776m)の倍以上の高さ。",
+     real:"高い山は酸素がうすく寒い。登山にも知識が必要。", conn:["geo"]},
+    {q:"日本が夏のとき、冬になるのは？", a:"オーストラリア", d:["韓国","ロシア","カナダ"], char:"🐧", lv:2,
+     e:"南半球は季節が逆。クリスマスが真夏。地球の地軸が傾いているのが原因。",
+     real:"季節が逆だから、冬でも南の国から夏野菜を輸入できる。", conn:["geo","science"]},
+    {q:"世界で母語として話す人がいちばん多い言語は？", a:"中国語", d:["英語","日本語","スペイン語"], char:"🗣️", lv:3,
+     e:"母語人口は中国語が最多。ただし『世界共通語』として広く通じるのは英語。",
+     real:"英語ができると世界中の人とゲームでも旅でもつながれる。", conn:["geo","lang"]},
+    {q:"アメリカで使うお金の単位は？", a:"ドル", d:["ユーロ","ウォン","ポンド"], char:"💵", lv:2,
+     e:"ヨーロッパの多くはユーロ、韓国はウォン、イギリスはポンド。",
+     real:"海外旅行や輸入品の値段は為替(円とドルの交換)で変わる。", conn:["geo","money"]},
+    {q:"ピラミッドやスフィンクスで有名な国は？", a:"エジプト", d:["インド","ギリシャ","ペルー"], char:"🐫", lv:1,
+     e:"約4500年前の巨大建造物。重機のない時代にどう作ったかは今も研究中。",
+     real:"古代文明の謎は映画やゲームの定番テーマ。", conn:["geo","history"]},
+    {q:"世界の人口はおよそ何人？(2020年代)", a:"約80億人", d:["約8億人","約800億人","約8千万人"], char:"🌐", lv:3,
+     e:"80億超。インドと中国が特に多い。日本は約1.2億人。",
+     real:"人口が増えると食料・水・エネルギーの問題も大きくなる。", conn:["geo","math"]},
+  ];
+
+  /* ---------------- 🏯 しゃかい（歴史・公民・経済） ---------------- */
+  const SOCIETY = [
+    {q:"約260年の平和が続いた日本の時代は？", a:"江戸時代", d:["戦国時代","明治時代","縄文時代"], char:"🏯", lv:2,
+     e:"大きな戦がほぼ無く、浮世絵・歌舞伎・寿司など文化が発展。今の和食の多くは江戸生まれ。",
+     real:"街の地名やお祭り、銭湯にも江戸の名残がある。", conn:["history"]},
+    {q:"国の力を立法・行政・司法の3つに分ける仕組みは？", a:"三権分立", d:["多数決","資本主義","鎖国"], char:"⚖️", lv:3,
+     e:"権力の暴走を防ぐため3つに分け、おたがいをチェックし合う。民主主義の土台。",
+     real:"ニュースの『国会・内閣・裁判所』はこの3つのこと。", conn:["history","daily"]},
+    {q:"日本で選挙で投票できるのは何歳から？", a:"18歳", d:["15歳","20歳","25歳"], char:"🗳️", lv:2,
+     e:"2016年から20歳→18歳に。自分たちの代表を選ぶ大切な権利。",
+     real:"身近な問題(学校・地域)も、もとは選挙で選ばれた人が決めている。", conn:["daily","history"]},
+    {q:"ほしい人が多く品物が少ないと、ねだんは普通どうなる？", a:"上がる", d:["下がる","変わらない","ゼロになる"], char:"📈", lv:3,
+     e:"需要>供給で値上がり。レアアイテムの転売価格が高いのと同じ。経済の基本法則。",
+     real:"人気ゲーム機の品薄や、季節で野菜の値段が動くのもこれ。", conn:["money","game"]},
+    {q:"買い物のとき価格に追加で払う税は？", a:"消費税", d:["所得税","関税","住民税"], char:"🧾", lv:2,
+     e:"日本では10%。集めたお金は学校・道路・医療などみんなのために使われる。",
+     real:"レシートを見ると消費税が書いてある。値段を見ぬく力になる。", conn:["money","daily"]},
+    {q:"18世紀に機械で大量生産が始まった大変化を何という？", a:"産業革命", d:["フランス革命","情報革命","農業革命"], char:"🏭", lv:3,
+     e:"イギリスで蒸気機関が普及。今の工場・鉄道・大量生産社会の出発点。",
+     real:"スマホやゲーム機が安く大量に作れるのも、この延長線上。", conn:["history","tech"]},
+    {q:"『1ドル100円→150円』に動いた。これは何という？", a:"円安", d:["円高","増税","デフレ"], char:"💱", lv:3,
+     e:"同じ1ドルに多くの円が必要＝円の力が弱い＝円安。輸入品が高くなる。",
+     real:"海外旅行・輸入ゲーム・ガソリン代に直接ひびく。", conn:["money","world"]},
+    {q:"日本国憲法の三大原則でないのは？", a:"鎖国主義", d:["国民主権","基本的人権の尊重","平和主義"], char:"📜", lv:3,
+     e:"主権在民・人権の尊重・平和主義が三原則。国の最高ルール。",
+     real:"言いたいことを言える自由(表現の自由)も人権のひとつ。", conn:["history","daily"]},
+    {q:"自国にない物を外国から買うことを何という？", a:"輸入", d:["輸出","生産","貯金"], char:"🚢", lv:2,
+     e:"売るのが輸出。日本は資源を輸入し、製品を輸出して成り立っている。",
+     real:"バナナ・石油・ゲームの部品も多くは輸入品。", conn:["money","geo"]},
+    {q:"世界をよくする17の国際目標『SDGs』。何のための目標？", a:"持続可能な未来", d:["お金もうけ","戦争","ゲーム制作"], char:"🌱", lv:2,
+     e:"貧困・環境・教育などをよくする目標。2030年がゴール年。",
+     real:"ごみの分別や節電も、自分にできるSDGsの一歩。", conn:["history","nature"]},
+    {q:"お金の三大役割でないのは？", a:"食べると栄養になる", d:["物と交換する","価値をためる","価値をはかる"], char:"🪙", lv:1,
+     e:"交換・保存・価値のものさし、が三大役割。お金そのものは食べられない。",
+     real:"おこづかいを『使う/ためる/比べる』のすべてがこの役割。", conn:["money"]},
+    {q:"日本が武士の世から近代国家へ変わった改革は？", a:"明治維新", d:["大化の改新","産業革命","鎖国"], char:"🚂", lv:3,
+     e:"江戸幕府が終わり、洋服・鉄道・学校制度が一気に入った大転換。",
+     real:"今の学校制度や鉄道のルーツはこの時代にある。", conn:["history"]},
+  ];
+
+  /* ---------------- 🏠 せいかつ（追加） ---------------- */
+  const LIFE2 = [
+    {q:"小学生にすすめられる睡眠時間はおよそ？", a:"9〜11時間", d:["3時間","5時間","15時間"], char:"😴", lv:1,
+     e:"脳と体の回復に必要。寝不足だと集中力もゲームの腕も落ちる。",
+     real:"よく寝た日は勉強もスポーツも調子がいい。", conn:["health","daily"]},
+    {q:"地震のとき、まず身を守る基本は？", a:"机の下などで頭を守る", d:["外へ走る","エレベーターで降りる","窓を開ける"], char:"🌊", lv:2,
+     e:"落ちてくる物から頭を守るのが最優先。日本は地震が多い国。",
+     real:"避難の合言葉は『おさない・かけない・しゃべらない・もどらない』。", conn:["daily","science"]},
+    {q:"体をつくるもとになる栄養素は？", a:"たんぱく質", d:["水","塩","砂糖"], char:"🥦", lv:2,
+     e:"肉・魚・卵・豆に多い。筋肉も内臓も髪もこれが材料。",
+     real:"運動する人や成長期はとくに大事な栄養。", conn:["health","cooking"]},
+    {q:"ペットボトルは何ごみ？", a:"資源ごみ(リサイクル)", d:["燃えるごみ","燃えないごみ","危険ごみ"], char:"♻️", lv:1,
+     e:"洗って分別すると、新しいボトルや服に生まれ変わる。",
+     real:"分別を知ると、家のお手伝いでも役に立つ。", conn:["daily","nature"]},
+  ];
+
+  /* ---------- ENGINE へ登録 ---------- */
+  // つながる分野チップに『ゲーム』を確実に用意（skills.js に game あり）
+  E.FIELDS.game = E.FIELDS.game || {name:"ゲーム", emoji:"🎮"};
+
+  E.TRIVIA.game_q    = {cat:"game",    name:"ゲームでまなぶ", emoji:"🎮", gen:quiz(GAME,    "ゲームのナゾ解き！")};
+  E.TRIVIA.sci_more  = {cat:"science", name:"理科ふしぎ",     emoji:"🔬", gen:quiz(SCIENCE, "へぇ！となる理科")};
+  E.TRIVIA.kot_more  = {cat:"kotoba",  name:"ことば力",       emoji:"✍️", gen:quiz(KOTOBA,  "ことばクイズ")};
+  E.TRIVIA.wld_more  = {cat:"world",   name:"世界たんけん",   emoji:"🌍", gen:quiz(WORLD,   "世界クイズ")};
+  E.TRIVIA.soc_q     = {cat:"society", name:"社会のしくみ",   emoji:"🏯", gen:quiz(SOCIETY, "社会クイズ")};
+  E.TRIVIA.life_more = {cat:"life",    name:"くらしの知恵",   emoji:"🏠", gen:quiz(LIFE2,   "役立つクイズ")};
+
+  // カテゴリを追加（focus チップに出る）
+  E.CATEGORIES.game    = {name:"ゲーム",   emoji:"🎮"};
+  E.CATEGORIES.society = {name:"しゃかい", emoji:"🏯"};
+
+  // カテゴリ→出題id を拡張
+  E.CAT_TRIVIA.science = (E.CAT_TRIVIA.science||[]).concat(["sci_more"]);
+  E.CAT_TRIVIA.kotoba  = (E.CAT_TRIVIA.kotoba ||[]).concat(["kot_more"]);
+  E.CAT_TRIVIA.world   = (E.CAT_TRIVIA.world  ||[]).concat(["wld_more"]);
+  E.CAT_TRIVIA.life    = (E.CAT_TRIVIA.life   ||[]).concat(["life_more"]);
+  E.CAT_TRIVIA.game    = ["game_q"];
+  E.CAT_TRIVIA.society = ["soc_q"];
+
+  // ミックスの回し順を再構成：算数を約1/8に減らし、ゲームを多めに・科目を多彩に
+  E.MIX_CYCLE = ["game","kotoba","science","world","society","game","life","math","science","world","kotoba","game"];
+
+  // レベル選択の定義（index.html が使う）
+  E.LEVELS_UI = {
+    all:{name:"ぜんぶ", emoji:"🎲", range:{min:1,max:3}},
+    e:  {name:"小学",   emoji:"🌱", range:{min:1,max:1}},
+    m:  {name:"中学",   emoji:"🔥", range:{min:1,max:2}},
+    h:  {name:"高校",   emoji:"⚡", range:{min:2,max:3}},
+  };
+  E.levelRange = {min:1,max:3};
+})();
+
+</script>
+<script>
+const E=window.ENGINE, SKILLS=E.SKILLS, BAND_ORDER=E.BAND_ORDER, FIELDS=E.FIELDS, META=E.META;
+const TRIVIA=E.TRIVIA, CATEGORIES=E.CATEGORIES, MIX_CYCLE=E.MIX_CYCLE, CAT_TRIVIA=E.CAT_TRIVIA;
+const $=id=>document.getElementById(id);
+
+const LEVELS=[{min:0,title:"たんけん見習い"},{min:100,title:"ものしりルーキー"},{min:250,title:"ひらめき探検家"},
+  {min:450,title:"つながりマスター"},{min:700,title:"ちしきの賢者"},{min:1000,title:"世界をつなぐ者"}];
+const BADGES=[
+  {id:"first",emoji:"🌱",name:"はじめの一歩",test:s=>s.totalAnswered>=1},
+  {id:"streak3",emoji:"🔥",name:"3日れんぞく",test:s=>s.streak>=3},
+  {id:"ten",emoji:"🎯",name:"10問とっぱ",test:s=>s.totalAnswered>=10},
+  {id:"combo5",emoji:"💎",name:"5問れんしょう",test:s=>s.bestCombo>=5},
+  {id:"master1",emoji:"⭐",name:"1スキル達人",test:s=>masteredCount(s)>=1},
+  {id:"master3",emoji:"🧭",name:"3スキル達人",test:s=>masteredCount(s)>=3},
+  {id:"hundred",emoji:"👑",name:"100問の道",test:s=>s.totalAnswered>=100},
+];
+function masteredCount(s){return Object.values(s.skills||{}).filter(x=>x.m>=80).length;}
+
+const KEY="kyounoichimon_v3";
+function todayStr(){const d=new Date();return d.getFullYear()+"-"+(d.getMonth()+1)+"-"+d.getDate();}
+function load(){
+  let s;try{s=JSON.parse(localStorage.getItem(KEY));}catch(e){s=null;}
+  if(!s) s={xp:0,streak:0,lastDay:null,totalAnswered:0,correct:0,combo:0,bestCombo:0,
+    badges:[],focus:"mix",level:"all",mixIdx:0,autoRead:false,history:[],skills:{},trivia:{},currentSkill:null,wrongStreak:0,answeredToday:0};
+  s.skills=s.skills||{}; s.trivia=s.trivia||{}; s.badges=s.badges||[]; s.history=s.history||[];
+  if(!s.focus)s.focus="mix"; if(!s.level)s.level="all"; if(s.mixIdx==null)s.mixIdx=0;
+  return s;
+}
+function save(s){localStorage.setItem(KEY,JSON.stringify(s));}
+let S=load();
+function mastery(id){return (S.skills[id]&&S.skills[id].m)||0;}
+function ensureSkill(id){if(!S.skills[id])S.skills[id]={m:0,att:0,cor:0};return S.skills[id];}
+
+/* ---- 算数：現在スキルの決定（やさしい所→難しい所） ---- */
+function firstUnmastered(){
+  const list=BAND_ORDER.all;
+  for(const id of list){ if(mastery(id)<80) return id; }
+  return list[list.length-1];
+}
+function fixCurrent(){
+  if(!S.currentSkill || !SKILLS[S.currentSkill]) S.currentSkill=firstUnmastered();
+}
+function trec(id){ if(!S.trivia[id])S.trivia[id]={att:0,cor:0}; return S.trivia[id]; }
+
+/* ---- 音声 ---- */
+let speaking=null;
+function speak(text,btn){
+  if(!("speechSynthesis"in window))return;
+  window.speechSynthesis.cancel();
+  const u=new SpeechSynthesisUtterance(text); u.lang="ja-JP"; u.rate=0.95; u.pitch=1.05;
+  const vs=window.speechSynthesis.getVoices().filter(v=>v.lang&&v.lang.indexOf("ja")===0);
+  if(vs.length)u.voice=vs[0];
+  if(btn)btn.classList.add("playing"); u.onend=()=>{if(btn)btn.classList.remove("playing");};
+  window.speechSynthesis.speak(u);
+}
+if("speechSynthesis"in window)window.speechSynthesis.onvoiceschanged=()=>{};
+
+/* ---- レベル/描画 ---- */
+function levelFor(xp){let lv=1,t=LEVELS[0].title,cur=0,next=LEVELS[1].min;
+  for(let i=0;i<LEVELS.length;i++)if(xp>=LEVELS[i].min){lv=i+1;t=LEVELS[i].title;cur=LEVELS[i].min;next=(i+1<LEVELS.length)?LEVELS[i+1].min:LEVELS[i].min;}
+  return {lv,title:t,cur,next};}
+function renderHeader(){
+  $("streak").textContent=S.streak; $("xp").textContent=S.xp;
+  const L=levelFor(S.xp); $("lvBadge").textContent="Lv"+L.lv; $("lvTitle").textContent=L.title;
+  const span=L.next-L.cur,into=S.xp-L.cur;
+  $("lvRemain").textContent=(L.next>L.cur)?Math.max(0,L.next-S.xp):"MAX";
+  $("lvBar").style.width=(L.next>L.cur?Math.min(100,into/span*100):100)+"%";
+}
+function renderGradeSel(){
+  const box=$("gradeSel"); box.innerHTML="";
+  Object.entries(CATEGORIES).forEach(([k,v])=>{
+    const d=document.createElement("div"); d.className="gchip"+(S.focus===k?" active":"");
+    d.innerHTML=v.emoji+"<small>"+v.name+"</small>";
+    d.onclick=()=>{S.focus=k; save(S); renderGradeSel(); renderQuestion(); window.scrollTo({top:0,behavior:"smooth"});};
+    box.appendChild(d);
+  });
+}
+function applyLevel(){ // S.level → エンジンの出題レベル範囲
+  const ui=(E.LEVELS_UI&&E.LEVELS_UI[S.level])||null;
+  E.levelRange = ui?ui.range:{min:1,max:3};
+}
+function renderLevelSel(){
+  const box=$("levelSel"); if(!box||!E.LEVELS_UI)return; box.innerHTML="";
+  Object.entries(E.LEVELS_UI).forEach(([k,v])=>{
+    const d=document.createElement("div"); d.className="gchip"+(S.level===k?" active":"");
+    d.innerHTML=v.emoji+"<small>"+v.name+"</small>";
+    d.onclick=()=>{S.level=k; applyLevel(); save(S); renderLevelSel(); renderQuestion(); window.scrollTo({top:0,behavior:"smooth"});};
+    box.appendChild(d);
+  });
+}
+function renderNowSkill(){
+  if(!current){$("nowSkill").innerHTML="";return;}
+  const extra = current.isMath? `（習得度 ${mastery(current.skillId)}%）` : "（クイズ）";
+  $("nowSkill").innerHTML=`<span class="dot"></span>いまのもんだい：<b>${current.label}</b>${extra}`;
+}
+function renderSkillsMap(){
+  const box=$("skillsMap"); box.innerHTML="";
+  const list=BAND_ORDER.all;
+  list.forEach(id=>{
+    const sk=SKILLS[id], m=mastery(id), st=S.skills[id];
+    const weak = st&&st.att>=2 && m<40;
+    const div=document.createElement("div");
+    div.className="srow"+(weak?" weak":"")+(m>=80?" mastered":"");
+    const col=m>=80?"var(--good)":m>=40?"var(--blue)":weak?"var(--bad)":"var(--purple)";
+    div.innerHTML=`<div class="top"><span class="e">${sk.emoji}</span>${sk.name}
+      <span class="pct">${m>=80?"達人 ✓":(st&&st.att?m+"%":"未挑戦")}</span></div>
+      <div class="track"><i style="width:${m}%;background:${col}"></i></div>`;
+    box.appendChild(div);
+  });
+}
+function renderBadges(){
+  const box=$("badges"); box.innerHTML="";
+  BADGES.forEach(b=>{const got=S.badges.includes(b.id);
+    const d=document.createElement("div"); d.className="badge"+(got?" got":"");
+    d.innerHTML=`<div class="bcircle">${b.emoji}</div><div class="bname">${b.name}</div>`; box.appendChild(d);});
+}
+function checkBadges(){let n=[];BADGES.forEach(b=>{if(!S.badges.includes(b.id)&&b.test(S)){S.badges.push(b.id);n.push(b);}});return n;}
+
+/* ---- 問題生成 ---- */
+let current=null, answered=false;
+function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+function buildChoices(p){
+  const ansKey=String(p.answer);
+  let ds=(p.distractors||[]).map(String).filter(x=>x!==ansKey);
+  ds=[...new Set(ds)];
+  if(!p.isText){
+    // 数値問題：不正値を除外し、足りなければ近い値で補完して4択に
+    ds=ds.filter(x=>Number(x)>=0 && x!=="NaN");
+    let guard=0;
+    while(ds.length<3 && guard++<30){
+      const base=Number(p.answer)||0; const cand=String(base+E.R(-3,4));
+      if(cand!==ansKey && !ds.includes(cand) && Number(cand)>=0) ds.push(cand);
+    }
+  }
+  // 文字問題：プールにある分だけ（3択でも可）
+  return shuffle([ansKey,...ds.slice(0,3)]);
+}
+/* ---- 科目を決めて1問つくる（ミックスは科目を自動で回す） ---- */
+function decideCategory(){
+  if(S.focus!=="mix") return S.focus;
+  const cat=MIX_CYCLE[S.mixIdx % MIX_CYCLE.length];
+  S.mixIdx=(S.mixIdx+1)%MIX_CYCLE.length;
+  return cat;
+}
+function getNext(){
+  const cat=decideCategory();
+  if(cat==="math"){
+    fixCurrent();
+    const sk=SKILLS[S.currentSkill]; const p=sk.gen();
+    // 算数にも解説・実生活・つながりを付与
+    p.explain=`答えは ${p.answer}${p.unit||""}。上の図でいっしょに数えると確かめられるよ。`;
+    p.real=(META[S.currentSkill]&&META[S.currentSkill].real)||"";
+    p.conn=(META[S.currentSkill]&&META[S.currentSkill].conn)||[];
+    return {isMath:true, category:"math", skillId:S.currentSkill, sk, p,
+      label:`${sk.emoji} ${sk.name}`};
+  } else {
+    const ids=CAT_TRIVIA[cat]||[]; const tid=ids[Math.floor(Math.random()*ids.length)];
+    const t=TRIVIA[tid]; const p=t.gen();
+    return {isMath:false, category:cat, triviaId:tid, p,
+      label:`${CATEGORIES[cat].emoji} ${CATEGORIES[cat].name}`};
+  }
+}
+function renderQuestion(){
+  answered=false;
+  current=getNext();
+  const p=current.p;
+  $("reveal").classList.remove("show");
+  $("tSubj").textContent=current.label;
+  $("tLvl").textContent=current.isMath?("習得度 "+mastery(current.skillId)+"%"):"クイズ ✨";
+  $("tDay").textContent="第"+(S.totalAnswered+1)+"問";
+  $("hook").textContent="👀 "+p.hook;
+  $("diaWrap").innerHTML=E.renderDia(p.dia);
+  $("qtext").textContent=p.text;
+  const choices=buildChoices(p); current.choices=choices;
+  const cbox=$("choices"); cbox.innerHTML="";
+  choices.forEach(val=>{
+    const btn=document.createElement("button"); btn.className="choice";
+    btn.textContent=val+(p.unit||""); btn.dataset.val=val;
+    btn.onclick=()=>answer(val,btn); cbox.appendChild(btn);
+  });
+  renderNowSkill();
+  if(S.autoRead) setTimeout(()=>speak(p.hook+"。 "+p.text,$("qSpeak")),250);
+}
+
+function answer(val,btn){
+  if(answered)return; answered=true;
+  const p=current.p, ansKey=String(p.answer), correct=(String(val)===ansKey);
+  [...document.querySelectorAll(".choice")].forEach(b=>{
+    b.disabled=true;
+    if(b.dataset.val===ansKey)b.classList.add("correct");
+    else if(b===btn)b.classList.add("wrong"); else b.classList.add("dim");
+  });
+
+  S.totalAnswered++;
+  const t=todayStr();
+  if(S.lastDay!==t){ if(S.lastDay){const diff=Math.round((new Date(t)-new Date(S.lastDay))/86400000); S.streak=(diff===1)?S.streak+1:1;} else S.streak=1; S.lastDay=t; S.answeredToday=0; }
+  S.answeredToday=(S.answeredToday||0)+1;
+
+  let gained=0, stepMsg=null, stepUp=false;
+  // コンボ・正答率（全科目共通）
+  if(correct){ S.correct++; S.combo++; if(S.combo>S.bestCombo)S.bestCombo=S.combo; }
+  else S.combo=0;
+
+  if(current.isMath){
+    const st=ensureSkill(current.skillId); st.att++;
+    if(correct){
+      st.cor++; st.m=Math.min(100,st.m+20); S.wrongStreak=0;
+      gained=10+Math.min(20,(S.combo-1)*3); showVerdict(true,gained); if(S.combo>=2)popCombo(S.combo);
+      if(st.m>=80){ const list=BAND_ORDER.all; const idx=list.indexOf(current.skillId);
+        let nextId=null; for(let i=idx+1;i<list.length;i++){ if(mastery(list[i])<80){nextId=list[i];break;} }
+        if(nextId){ S.currentSkill=nextId; stepMsg=`🎉「${current.sk.name}」マスター！つぎの算数は「${SKILLS[nextId].emoji} ${SKILLS[nextId].name}」！`; stepUp=true; }
+        else { stepMsg=`🎉「${current.sk.name}」マスター！算数はぜんぶ達人レベル！`; stepUp=true; }
+      }
+    } else {
+      st.m=Math.max(0,st.m-12); S.wrongStreak=(S.wrongStreak||0)+1; gained=4; showVerdict(false,gained);
+      if(S.wrongStreak>=2 && current.sk.prereq){
+        S.currentSkill=current.sk.prereq; S.wrongStreak=0;
+        stepMsg=`🧰 ここは少しむずかしいね。基礎の「${SKILLS[current.sk.prereq].emoji} ${SKILLS[current.sk.prereq].name}」にもどって、できる所から固めよう。`;
+      }
+    }
+    S.history.push({ts:Date.now(),skill:current.skillId,cat:"math",correct});
+  } else {
+    const tr=trec(current.triviaId); tr.att++; if(correct)tr.cor++;
+    if(correct){ gained=8+Math.min(16,(S.combo-1)*3); showVerdict(true,gained); if(S.combo>=2)popCombo(S.combo); }
+    else { gained=4; showVerdict(false,gained); }
+    S.history.push({ts:Date.now(),skill:"t:"+current.triviaId,cat:current.category,correct});
+  }
+  S.xp+=gained;
+  if(S.history.length>600)S.history=S.history.slice(-600);
+
+  // 解説（図で見ると / 実生活 / つながる分野）
+  $("explain").textContent = current.p.explain||"";
+  $("real").textContent = current.p.real||"";
+  const chips=$("connectChips"); chips.innerHTML="";
+  (current.p.conn||[]).forEach(fk=>{const f=FIELDS[fk]; if(!f)return;
+    const sp=document.createElement("span"); sp.className="connchip"; sp.textContent=f.emoji+" "+f.name; chips.appendChild(sp);});
+
+  const newly=checkBadges();
+  save(S);
+  renderHeader(); renderSkillsMap(); renderBadges();
+
+  if(stepMsg){ const n=$("stepNote"); n.className="stepnote show"+(stepUp?" up":""); n.textContent=stepMsg; }
+  else $("stepNote").className="stepnote";
+
+  $("reveal").classList.add("show"); $("reveal").scrollIntoView({behavior:"smooth",block:"nearest"});
+  if(S.autoRead) setTimeout(()=>speak((correct?"せいかい！":"おしい！")+" "+(current.p.explain||""),null),400);
+  if(newly.length) setTimeout(()=>toast("🏅 バッジ獲得！「"+newly[0].name+"」"),700);
+}
+function showVerdict(ok,xp){
+  const v=$("verdict"); v.className="verdict "+(ok?"ok":"ng");
+  v.innerHTML=ok?`<span class="big">🎉</span> せいかい！　<span style="color:var(--accent)">+${xp}XP</span>`
+    :`<span class="big">💪</span> おしい！“挑戦XP” <span style="color:var(--accent)">+${xp}</span> ゲット`;
+}
+function popCombo(n){const p=$("comboPop");p.textContent=n+" コンボ！🔥";p.classList.remove("go");void p.offsetWidth;p.classList.add("go");}
+function toast(m){const t=$("toast");t.textContent=m;t.classList.add("show");clearTimeout(t._tm);t._tm=setTimeout(()=>t.classList.remove("show"),2600);}
+
+/* ---- 保護者レポート ---- */
+const PARENT_TIP={
+  general_low:"今は<b>正解より「触れた回数」</b>が大事な時期。できた問題数そのものを褒めてあげてください。",
+  general_ok:"順調です。<b>むずかしい問題に挑戦した</b>こと自体を具体的に言葉にして褒めると、挑戦が好きになります。",
+};
+function openParent(){
+  const week=Date.now()-7*86400000, wk=S.history.filter(h=>h.ts>=week);
+  $("rWeek").textContent=wk.length; $("rTotal").textContent=S.totalAnswered;
+  const acc=S.totalAnswered?Math.round(S.correct/S.totalAnswered*100):0; $("rAcc").textContent=acc+"%";
+
+  // スキル別習得度
+  const box=$("rSkills"); box.innerHTML="";
+  const tried=BAND_ORDER.all.filter(id=>S.skills[id]&&S.skills[id].att>0);
+  if(tried.length===0) box.innerHTML='<div style="color:var(--sub);font-size:13px">まだ記録がありません。1問やってみましょう。</div>';
+  tried.forEach(id=>{const sk=SKILLS[id],m=mastery(id),st=S.skills[id];
+    const col=m>=80?"var(--good)":m>=40?"var(--blue)":"var(--bad)";
+    const d=document.createElement("div"); d.className="repbar";
+    d.innerHTML=`<div class="top"><span>${sk.emoji} ${sk.name}</span><span>${m}%（${st.cor}/${st.att}正解）</span></div>
+      <div class="track"><i style="width:${m}%;background:${col}"></i></div>`; box.appendChild(d);
+  });
+
+  // つまずきポイント＝挑戦したのに習得度が低いスキル
+  const weak=tried.filter(id=>S.skills[id].att>=2 && mastery(id)<40)
+    .sort((a,b)=>mastery(a)-mastery(b));
+  const stuckEl=$("rStuck"), voiceEl=$("rVoice");
+  if(weak.length){
+    const id=weak[0], sk=SKILLS[id];
+    stuckEl.style.display="block";
+    stuckEl.innerHTML=`📍 <b>つまずきポイント：${sk.emoji} ${sk.name}</b><br>`+
+      `何度か挑戦していますが習得度 ${mastery(id)}%。アプリは自動で前の「${sk.prereq?SKILLS[sk.prereq].name:"基礎"}」に戻して練習させています。`;
+    voiceEl.innerHTML=`🗣 <b>声がけのヒント</b><br>${sk.hint}`;
+  } else {
+    stuckEl.style.display="none";
+    // いま伸びてるスキルを褒める材料に
+    const best=tried.slice().sort((a,b)=>mastery(b)-mastery(a))[0];
+    let v = acc>=70?PARENT_TIP.general_ok:PARENT_TIP.general_low;
+    if(best) v=`🗣 <b>声がけのヒント</b><br>いま <b>${SKILLS[best].emoji}${SKILLS[best].name}</b> が伸びています（習得度${mastery(best)}%）。「${SKILLS[best].name}、できるようになってきたね」と具体的に伝えるのが効果的。<br>`+v;
+    voiceEl.innerHTML=v;
+  }
+  $("parentModal").classList.add("show");
+}
+
+/* ---- ボタン ---- */
+$("nextBtn").onclick=()=>{$("stepNote").className="stepnote"; renderQuestion(); window.scrollTo({top:0,behavior:"smooth"});};
+$("stopBtn").onclick=()=>{ if("speechSynthesis"in window)window.speechSynthesis.cancel();
+  $("card").innerHTML=`<div class="done"><div class="big">🌙</div><h2>今日もよくがんばったね</h2>
+    <p>今日は <b>${S.answeredToday}問</b> ／ つうさん <b>${S.totalAnswered}問</b><br>XP <b>${S.xp}</b>・連続 <b>${S.streak}日</b><br><br>また明日、新しい一問が待ってるよ。</p>
+    <button class="btn" onclick="location.reload()">もう一問やる ▶</button></div>`;
+  window.scrollTo({top:0,behavior:"smooth"});};
+$("qSpeak").onclick=()=>speak(current.p.hook+"。 "+current.p.text+"。 "+current.choices.map(c=>c+(current.p.unit||"")).join("、 "),$("qSpeak"));
+document.querySelectorAll(".miniSpeak").forEach(b=>{b.onclick=()=>speak($(b.dataset.for).textContent,null);});
+$("autoReadBtn").onclick=()=>{S.autoRead=!S.autoRead;save(S);$("autoReadBtn").classList.toggle("on",S.autoRead);toast(S.autoRead?"🔊 自動読み上げ ON":"🔇 自動読み上げ OFF");};
+$("parentBtn").onclick=openParent;
+$("parentClose").onclick=()=>$("parentModal").classList.remove("show");
+$("parentModal").onclick=e=>{if(e.target.id==="parentModal")$("parentModal").classList.remove("show");};
+$("resetLink").onclick=e=>{e.preventDefault();if(confirm("進み具合を全部消して、さいしょからやり直す？")){localStorage.removeItem(KEY);location.reload();}};
+
+/* 初期化 */
+fixCurrent(); applyLevel();
+$("autoReadBtn").classList.toggle("on",S.autoRead);
+renderHeader(); renderGradeSel(); renderLevelSel(); renderSkillsMap(); renderBadges(); renderQuestion();
+</script>
+</body>
+</html>

@@ -18,7 +18,7 @@
       const it=levelPick(pool);
       return { hook: hook||"クイズ！", text: it.q,
         dia:{type:"emoji", char: it.char||"❓"},
-        answer: it.a, distractors: it.d, isText:true,
+        answer: it.a, distractors: it.d, isText:true, lv: it.lv||1,
         explain: it.e, real: it.real||"", conn: it.conn||[] };
     };
   }
@@ -302,4 +302,19 @@
     h:  {name:"高校",   emoji:"⚡", range:{min:2,max:3}},
   };
   E.levelRange = {min:1,max:3};
+
+  // 教科メタ（科目名・アイコン・テーマ色）— 画面の色分けに使う
+  E.SUBJECTS = {
+    math:   {name:"算数・数学",   emoji:"🔢", color:"#2f7bf6", bg:"#e7f0ff"},
+    science:{name:"理科",         emoji:"🔬", color:"#16b964", bg:"#e4f8ec"},
+    kotoba: {name:"こくご・ことば",emoji:"✍️", color:"#e84aa0", bg:"#ffe7f4"},
+    world:  {name:"せかい・地理",  emoji:"🌍", color:"#10b6cf", bg:"#e0f7fb"},
+    society:{name:"しゃかい",      emoji:"🏯", color:"#f59410", bg:"#fff1d6"},
+    life:   {name:"せいかつ",      emoji:"🏠", color:"#8b5cf6", bg:"#efe9ff"},
+    game:   {name:"ゲーム",        emoji:"🎮", color:"#f0463f", bg:"#ffe6e6"},
+  };
+  E.STAGE = {1:"小学", 2:"中学", 3:"高校"};
+  // トリビア種類id → 教科キー（バナー表示用）
+  E.TRIVIA_SUBJECT = {};
+  Object.entries(E.TRIVIA).forEach(([id,t])=>{ E.TRIVIA_SUBJECT[id]=t.cat; });
 })();

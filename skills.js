@@ -6,8 +6,8 @@
    ・prereq（前提スキル）で、間違えたら簡単な所まで戻れる
    ============================================================ */
 (function(){
-  const COL = {blue:"#5b9dff",green:"#5be37a",pink:"#ff7bd0",amber:"#ffd23f",
-    orange:"#ff8e3c",purple:"#b388ff",teal:"#37e0a6",red:"#ff6b8a",grid:"#2b3160",ink:"#dfe3ff",sub:"#8b93c8"};
+  const COL = {blue:"#3b82f6",green:"#22b964",pink:"#ec4899",amber:"#f5a300",
+    orange:"#ff8e3c",purple:"#8b5cf6",teal:"#10b6a0",red:"#ff5d7e",grid:"#cdd9f5",ink:"#2b3a66",sub:"#8a96c4"};
 
   const R = (a,b)=>Math.floor(Math.random()*(b-a+1))+a;
   const pick = arr => arr[Math.floor(Math.random()*arr.length)];
@@ -91,7 +91,7 @@
       const x1=cx+rad*Math.cos(a1), y1=cy+rad*Math.sin(a1);
       const large=(a1-a0)>Math.PI?1:0;
       inner+=`<path d="M${cx} ${cy} L${x0.toFixed(1)} ${y0.toFixed(1)} A${rad} ${rad} 0 ${large} 1 ${x1.toFixed(1)} ${y1.toFixed(1)} Z"
-        fill="${i<k?COL.pink:'#1b2046'}" stroke="#0f1226" stroke-width="2"/>`;
+        fill="${i<k?COL.pink:'#e6ecfb'}" stroke="#b7c4e8" stroke-width="2"/>`;
     }
     return svg(inner,176);
   }
@@ -101,11 +101,11 @@
     let inner=`<text x="24" y="30" fill="${COL.sub}" font-size="12">全体を ${p.total} に分けたうち ${p.part} 個</text>`;
     for(let i=0;i<p.total;i++)
       inner+=`<rect x="${x0+i*seg}" y="${y}" width="${seg-1.5}" height="${h}" rx="3"
-        fill="${i<p.part?COL.green:'#1b2046'}" stroke="#0f1226"/>`;
+        fill="${i<p.part?COL.green:'#e6ecfb'}" stroke="#b7c4e8"/>`;
     // 100スケール
     const y2=110;
     inner+=`<text x="24" y="${y2-8}" fill="${COL.sub}" font-size="12">同じ割合を「100」で見ると…</text>
-      <rect x="${x0}" y="${y2}" width="${W}" height="${h}" rx="5" fill="#1b2046" stroke="${COL.grid}"/>
+      <rect x="${x0}" y="${y2}" width="${W}" height="${h}" rx="5" fill="#e6ecfb" stroke="${COL.grid}"/>
       <rect x="${x0}" y="${y2}" width="${(p.part/p.total)*W}" height="${h}" rx="5" fill="${COL.amber}"/>
       <text x="${x0+(p.part/p.total)*W/2}" y="${y2+20}" fill="#2a1c00" font-size="13" font-weight="800" text-anchor="middle">?%</text>`;
     return svg(inner,160);
@@ -127,7 +127,7 @@
   }
 
   function diaClock(p){ // 時計：h時0分
-    const cx=160,cy=90,rad=72; let inner=`<circle cx="${cx}" cy="${cy}" r="${rad}" fill="#11163a" stroke="${COL.grid}" stroke-width="4"/>`;
+    const cx=160,cy=90,rad=72; let inner=`<circle cx="${cx}" cy="${cy}" r="${rad}" fill="#eef3ff" stroke="${COL.grid}" stroke-width="4"/>`;
     for(let i=1;i<=12;i++){ const a=(i/12)*2*Math.PI-Math.PI/2;
       inner+=`<text x="${cx+(rad-16)*Math.cos(a)}" y="${cy+(rad-16)*Math.sin(a)+5}" fill="${COL.ink}" font-size="14" text-anchor="middle" font-weight="700">${i}</text>`; }
     const ha=(p.h%12)/12*2*Math.PI-Math.PI/2; // 短針
@@ -142,7 +142,7 @@
     const order=[500,100,50,10,5,1]; const colMap={500:COL.amber,100:"#c9cdd6",50:"#c9cdd6",10:COL.orange,5:COL.amber,1:"#c9cdd6"};
     let x=40,y=50,inner=""; let idx=0;
     order.forEach(v=>{ const c=p.coins[v]||0; for(let i=0;i<c;i++){
-      inner+=`<circle cx="${x}" cy="${y}" r="20" fill="${colMap[v]}" stroke="#0f1226" stroke-width="2"/>
+      inner+=`<circle cx="${x}" cy="${y}" r="20" fill="${colMap[v]}" stroke="#b7c4e8" stroke-width="2"/>
               <text x="${x}" y="${y+5}" fill="#1a1a1a" font-size="13" text-anchor="middle" font-weight="800">${v}</text>`;
       idx++; x+=48; if(x>290){x=40;y+=52;} } });
     return svg(inner, y+40);
@@ -155,7 +155,7 @@
   function diaWord(p){ // 大きな文字（漢字・ことば）
     const fs = p.word.length<=2?72 : p.word.length<=4?52:38;
     const sub = p.sub? `<text x="160" y="150" fill="${COL.sub}" font-size="14" text-anchor="middle">${p.sub}</text>`:"";
-    return svg(`<rect x="70" y="22" width="180" height="100" rx="14" fill="#11163a" stroke="${COL.grid}" stroke-width="2"/>
+    return svg(`<rect x="70" y="22" width="180" height="100" rx="14" fill="#eef3ff" stroke="${COL.grid}" stroke-width="2"/>
       <text x="160" y="92" fill="${COL.ink}" font-size="${fs}" text-anchor="middle" font-weight="800">${p.word}</text>${sub}`,170);
   }
   function renderDia(d){

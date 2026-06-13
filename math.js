@@ -8,8 +8,8 @@
 (function(){
   const E=window.ENGINE; if(!E){console.error("skills.js を先に");return;}
   const R=E.R, pick=E.pick;
-  const C={ink:"#eef1ff",sub:"#8b93c8",grid:"#2b3160",blue:"#5b9dff",purple:"#b388ff",
-    green:"#37e0a6",amber:"#ffd23f",pink:"#ff7bd0",bg:"#11163a",plane:"#0e1234"};
+  const C={ink:"#eef1ff",sub:"#8b93c8",grid:"#2b3160",blue:"#3b82f6",purple:"#8b5cf6",
+    green:"#16b964",amber:"#f5a300",pink:"#ec4899",bg:"#11163a",plane:"#0e1234"};
 
   // ---- 共通ヘルパ ----
   const sgn=n=> n>=0?`+ ${n}`:`- ${-n}`;
@@ -34,8 +34,8 @@
       ${sub?`<text x="160" y="138" fill="${C.sub}" font-size="13" text-anchor="middle">${esc(sub)}</text>`:""}`,158); }
   function plane(inner){ const cx=160,cy=95;
     return SV(`<rect x="6" y="8" width="308" height="172" rx="10" fill="${C.plane}" stroke="${C.grid}"/>
-      <line x1="14" y1="${cy}" x2="306" y2="${cy}" stroke="#3a4170" stroke-width="1.5"/>
-      <line x1="${cx}" y1="16" x2="${cx}" y2="176" stroke="#3a4170" stroke-width="1.5"/>
+      <line x1="14" y1="${cy}" x2="306" y2="${cy}" stroke="#b7c4e8" stroke-width="1.5"/>
+      <line x1="${cx}" y1="16" x2="${cx}" y2="176" stroke="#b7c4e8" stroke-width="1.5"/>
       <text x="300" y="${cy-5}" fill="${C.sub}" font-size="11">x</text>
       <text x="${cx+6}" y="22" fill="${C.sub}" font-size="11">y</text>${inner}`,188); }
   const clampY=y=>Math.max(18,Math.min(174,y));
@@ -276,4 +276,19 @@
 
   // 算数カテゴリ名を「算数・数学」に
   if(E.CATEGORIES.math) E.CATEGORIES.math={name:"算数・数学",emoji:"🔢"};
+
+  // 各段の「学年」ラベル（バナー表示用）
+  E.MATH_GRADE = {
+    count:"小1", add1:"小1", sub1:"小1", time:"小1",
+    add2:"小2", sub2:"小2", mul1:"小2", money:"小2",
+    div1:"小3", fraction:"小3",
+    decimal:"小4", area:"小4",
+    percent:"小5", average:"小5",
+    neg:"中1", lineq:"中1", ratio:"中1",
+    angle:"中2", func2:"中2", prob:"中2",
+    sqrt:"中3", factor:"中3", quad:"中3", pythagoras:"中3",
+    quadfunc:"高1", trig:"高1", comb:"高1",
+    explog:"高2", seq:"高2",
+    diff:"高3",
+  };
 })();

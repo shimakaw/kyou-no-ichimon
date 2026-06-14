@@ -10,7 +10,13 @@
 
   // 出題レベルの範囲（index.html が ENGINE.levelRange を設定。既定は全部）
   function inRange(lv){ const r=E.levelRange||{min:1,max:3}; return lv>=r.min && lv<=r.max; }
-  function levelPick(pool){ const f=pool.filter(it=>inRange(it.lv||1)); return pick(f.length?f:pool); }
+  function levelPick(pool){
+    let f=pool.filter(it=>inRange(it.lv||1));
+    if(!f.length) f=pool;
+    // いまの難易度(targetLv)があれば、そのレベルの問題を優先（はしご式の上下に対応）
+    if(E.targetLv){ const tf=f.filter(it=>(it.lv||1)===E.targetLv); if(tf.length) f=tf; }
+    return pick(f);
+  }
 
   // プール → トリビア生成関数（共通フォーマット）
   function quiz(pool, hook){

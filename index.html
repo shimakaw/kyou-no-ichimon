@@ -304,9 +304,11 @@ function todayStr(){const d=new Date();return d.getFullYear()+"-"+(d.getMonth()+
 function load(){
   let s;try{s=JSON.parse(localStorage.getItem(KEY));}catch(e){s=null;}
   if(!s) s={xp:0,streak:0,lastDay:null,totalAnswered:0,correct:0,combo:0,bestCombo:0,
-    badges:[],focus:"mix",level:"all",mixIdx:0,autoRead:false,history:[],skills:{},trivia:{},currentSkill:null,wrongStreak:0,answeredToday:0};
+    badges:[],focus:"mix",level:"all",mixIdx:0,autoRead:false,history:[],skills:{},trivia:{},currentSkill:null,
+    mathPos:null,triviaLv:null,wrongStreak:0,answeredToday:0};
   s.skills=s.skills||{}; s.trivia=s.trivia||{}; s.badges=s.badges||[]; s.history=s.history||[];
   if(!s.focus)s.focus="mix"; if(!s.level)s.level="all"; if(s.mixIdx==null)s.mixIdx=0;
+  if(s.mathPos===undefined)s.mathPos=null; if(s.triviaLv===undefined)s.triviaLv=null;
   return s;
 }
 function save(s){localStorage.setItem(KEY,JSON.stringify(s));}
@@ -329,6 +331,17 @@ function fixCurrent(){
   if(!S.currentSkill || !SKILLS[S.currentSkill]) S.currentSkill=firstUnmastered();
 }
 function trec(id){ if(!S.trivia[id])S.trivia[id]={att:0,cor:0}; return S.trivia[id]; }
+
+/* ---- はしご式の難易度バンド（レベル別の上下限） ---- */
+// 算数：ラダー上で、選択レベルに含まれる段の最初〜最後のインデックス
+function mathBand(){
+  const r=mathRange(), list=BAND_ORDER.all; let lo=-1,hi=-1;
+  for(let i=0;i<list.length;i++){ const lv=skLv(list[i]); if(lv>=r.start&&lv<=r.max){ if(lo<0)lo=i; hi=i; } }
+  if(lo<0){ lo=0; hi=list.length-1; }
+  return {min:lo,max:hi};
+}
+// トリビア：選択レベルに含まれる lv の下限〜上限
+function tBand(){ const r=E.levelRange||{min:1,max:3}; return {min:r.min,max:r.max}; }
 
 /* ---- 音声 ---- */
 let speaking=null;
@@ -373,7 +386,7 @@ function renderLevelSel(){
   Object.entries(E.LEVELS_UI).forEach(([k,v])=>{
     const d=document.createElement("div"); d.className="gchip"+(S.level===k?" active":"");
     d.innerHTML=v.emoji+"<small>"+v.name+"</small>";
-    d.onclick=()=>{S.level=k; applyLevel(); S.currentSkill=firstUnmastered(); save(S);
+    d.onclick=()=>{S.level=k; applyLevel(); S.mathPos=null; S.triviaLv=null; S.currentSkill=null; save(S);
       renderLevelSel(); renderQuestion(); window.scrollTo({top:0,behavior:"smooth"});};
     box.appendChild(d);
   });
@@ -470,9 +483,12 @@ function decideCategory(){
 function getNext(){
   const cat=decideCategory();
   if(cat==="math"){
-    fixCurrent();
+    // はしご式：いまの段(mathPos)をレベル帯内にクランプして出題
+    const band=mathBand();
+    if(S.mathPos==null) S.mathPos=band.min;
+    S.mathPos=Math.max(band.min,Math.min(band.max,S.mathPos));
+    S.currentSkill=BAND_ORDER.all[S.mathPos];
     const sk=SKILLS[S.currentSkill]; const p=sk.gen();
-    // 生成側が解説等を持っていればそれを使い、無ければ既定で補う
     if(!p.explain) p.explain=`答えは ${p.answer}${p.unit||""}。上の図でいっしょに確かめてみよう。`;
     if(!p.real)    p.real=(META[S.currentSkill]&&META[S.currentSkill].real)||"";
     if(!p.conn)    p.conn=(META[S.currentSkill]&&META[S.currentSkill].conn)||["math"];
@@ -480,6 +496,11 @@ function getNext(){
     return {isMath:true, category:"math", skillId:S.currentSkill, sk, p,
       label:`${sk.emoji} ${lvl}${sk.name}`};
   } else {
+    // はしご式：いまの難易度(triviaLv)を帯内にクランプして、その難度の問題を優先
+    const tb=tBand();
+    if(S.triviaLv==null) S.triviaLv=tb.min;
+    S.triviaLv=Math.max(tb.min,Math.min(tb.max,S.triviaLv));
+    E.targetLv=S.triviaLv;
     const ids=CAT_TRIVIA[cat]||[]; const tid=ids[Math.floor(Math.random()*ids.length)];
     const t=TRIVIA[tid]; const p=t.gen();
     return {isMath:false, category:cat, triviaId:tid, p,
@@ -541,29 +562,30 @@ function answer(val,btn){
 
   if(current.isMath){
     const st=ensureSkill(current.skillId); st.att++;
+    const band=mathBand();
     if(correct){
-      st.cor++; st.m=Math.min(100,st.m+20); S.wrongStreak=0;
+      st.cor++; st.m=Math.min(100,st.m+20);
       gained=10+Math.min(20,(S.combo-1)*3); showVerdict(true,gained); if(S.combo>=2)popCombo(S.combo);
-      if(st.m>=80){ const list=BAND_ORDER.all; const idx=list.indexOf(current.skillId);
-        const cap=mathRange().max;
-        let nextId=null; for(let i=idx+1;i<list.length;i++){ if(skLv(list[i])<=cap && mastery(list[i])<80){nextId=list[i];break;} }
-        if(nextId){ S.currentSkill=nextId;
-          const nlv=E.LADDER_LABEL?E.LADDER_LABEL[skLv(nextId)]+"・":"";
-          stepMsg=`🎉「${current.sk.name}」マスター！つぎは「${SKILLS[nextId].emoji} ${nlv}${SKILLS[nextId].name}」！`; stepUp=true; }
-        else { stepMsg=`🎉「${current.sk.name}」マスター！このレベルの算数は制覇！上のレベルに挑戦してみよう。`; stepUp=true; }
-      }
+      if(S.mathPos<band.max){ S.mathPos++; const nid=BAND_ORDER.all[S.mathPos];
+        const nlv=E.LADDER_LABEL?E.LADDER_LABEL[skLv(nid)]+"・":"";
+        stepMsg=`🆙 正解！つぎは少し複雑な「${SKILLS[nid].emoji} ${nlv}${SKILLS[nid].name}」に挑戦！`; stepUp=true;
+      } else { stepMsg=`🏆 このレベルの最高難度をクリア！すごい！`; stepUp=true; }
     } else {
-      st.m=Math.max(0,st.m-12); S.wrongStreak=(S.wrongStreak||0)+1; gained=4; showVerdict(false,gained);
-      if(S.wrongStreak>=2 && current.sk.prereq){
-        S.currentSkill=current.sk.prereq; S.wrongStreak=0;
-        stepMsg=`🧰 ここは少しむずかしいね。基礎の「${SKILLS[current.sk.prereq].emoji} ${SKILLS[current.sk.prereq].name}」にもどって、できる所から固めよう。`;
-      }
+      st.m=Math.max(0,st.m-12); gained=4; showVerdict(false,gained);
+      if(S.mathPos>band.min){ S.mathPos--; const pid=BAND_ORDER.all[S.mathPos];
+        const plv=E.LADDER_LABEL?E.LADDER_LABEL[skLv(pid)]+"・":"";
+        stepMsg=`🪜 つぎは1つやさしい「${SKILLS[pid].emoji} ${plv}${SKILLS[pid].name}」にもどろう。あせらず！`;
+      } else { stepMsg=`💪 だいじょうぶ！同じくらいの問題でもう一回やってみよう。`; }
     }
     S.history.push({ts:Date.now(),skill:current.skillId,cat:"math",correct});
   } else {
     const tr=trec(current.triviaId); tr.att++; if(correct)tr.cor++;
-    if(correct){ gained=8+Math.min(16,(S.combo-1)*3); showVerdict(true,gained); if(S.combo>=2)popCombo(S.combo); }
-    else { gained=4; showVerdict(false,gained); }
+    const tb=tBand();
+    if(correct){ gained=8+Math.min(16,(S.combo-1)*3); showVerdict(true,gained); if(S.combo>=2)popCombo(S.combo);
+      if(S.triviaLv<tb.max){ S.triviaLv++; stepMsg=`🆙 正解！つぎは少しむずかしい${(E.STAGE&&E.STAGE[S.triviaLv])||""}レベルのクイズ！`; stepUp=true; }
+    } else { gained=4; showVerdict(false,gained);
+      if(S.triviaLv>tb.min){ S.triviaLv--; stepMsg=`🪜 つぎは少しやさしい${(E.STAGE&&E.STAGE[S.triviaLv])||""}レベルのクイズにするね。`; }
+    }
     S.history.push({ts:Date.now(),skill:"t:"+current.triviaId,cat:current.category,correct});
   }
   S.xp+=gained;

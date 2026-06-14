@@ -245,7 +245,7 @@
     </div>
   </div>
 
-  <div class="section-title">📈 算数の習得マップ（どこまで進んだ？）</div>
+  <div class="section-title">📈 全教科の習得マップ（どこまで進んだ？）</div>
   <div class="skills" id="skillsMap"></div>
 
   <div class="section-title">🏅 あつめたバッジ</div>
@@ -1445,27 +1445,54 @@ function renderNowSkill(){
   const extra = current.isMath? `（習得度 ${mastery(current.skillId)}%）` : "（クイズ）";
   $("nowSkill").innerHTML=`<span class="dot"></span>いまのもんだい：<b>${current.label}</b>${extra}`;
 }
+function subjHeader(key,extra){
+  const s=(E.SUBJECTS&&E.SUBJECTS[key])||{name:key,emoji:"📘",color:"#3b82f6",bg:"#e7f0ff"};
+  const h=document.createElement("div");
+  h.style.cssText=`display:flex;align-items:center;gap:8px;font-size:14.5px;font-weight:900;margin:18px 2px 9px;padding:8px 13px;border-radius:13px;background:${s.bg};color:${s.color};border:1.5px solid ${s.color};`;
+  h.innerHTML=`<span style="font-size:18px">${s.emoji}</span>${s.name}${extra?`<span style="margin-left:auto;font-size:11px;font-weight:800;opacity:.85">${extra}</span>`:''}`;
+  return h;
+}
+function rowEl(emoji,name,m,labelRight,opts){
+  opts=opts||{};
+  const div=document.createElement("div");
+  div.className="srow"+(opts.weak?" weak":"")+(m>=80?" mastered":"");
+  if(opts.now) div.style.borderColor="var(--accent)";
+  const col=opts.color||(m>=80?"var(--good)":m>=40?"var(--blue)":opts.weak?"var(--bad)":"var(--purple)");
+  div.innerHTML=`<div class="top"><span class="e">${emoji}</span>${name}${opts.now?' <span style="color:var(--accent);font-size:11px">◀ いまここ</span>':''}
+    <span class="pct">${labelRight}</span></div>
+    <div class="track"><i style="width:${m}%;background:${col}"></i></div>`;
+  return div;
+}
 function renderSkillsMap(){
   const box=$("skillsMap"); box.innerHTML="";
-  const list=BAND_ORDER.all; let lastLv=0;
-  list.forEach(id=>{
+  // ① 算数（段階ラダー：小学→中学→高校）
+  const mathTotal=BAND_ORDER.all.length, mathDone=BAND_ORDER.all.filter(id=>mastery(id)>=80).length;
+  box.appendChild(subjHeader("math",`${mathDone}/${mathTotal} 段クリア`));
+  let lastLv=0;
+  BAND_ORDER.all.forEach(id=>{
     const sk=SKILLS[id]; if(!sk)return; const lv=sk.lv||1, m=mastery(id), st=S.skills[id];
     if(lv!==lastLv){ lastLv=lv;
       const h=document.createElement("div");
-      h.style.cssText="font-size:12px;font-weight:800;color:var(--sub);margin:12px 4px 6px;letter-spacing:.05em;";
-      const lab=(E.LADDER_LABEL&&E.LADDER_LABEL[lv])||""; const ico={1:"🌱",2:"🔥",3:"⚡"}[lv]||"";
-      h.textContent=`${ico} ${lab}レベル`; box.appendChild(h);
+      h.style.cssText="font-size:11.5px;font-weight:800;color:var(--sub);margin:10px 4px 5px;letter-spacing:.05em;";
+      h.textContent=`${({1:"🌱",2:"🔥",3:"⚡"}[lv]||"")} ${(E.LADDER_LABEL&&E.LADDER_LABEL[lv])||""}レベル`;
+      box.appendChild(h);
     }
-    const weak = st&&st.att>=2 && m<40;
-    const isnow = id===S.currentSkill;
-    const div=document.createElement("div");
-    div.className="srow"+(weak?" weak":"")+(m>=80?" mastered":"");
-    if(isnow) div.style.borderColor="var(--accent)";
-    const col=m>=80?"var(--good)":m>=40?"var(--blue)":weak?"var(--bad)":"var(--purple)";
-    div.innerHTML=`<div class="top"><span class="e">${sk.emoji}</span>${sk.name}${isnow?' <span style="color:var(--accent);font-size:11px">◀ いまここ</span>':''}
-      <span class="pct">${m>=80?"達人 ✓":(st&&st.att?m+"%":"未挑戦")}</span></div>
-      <div class="track"><i style="width:${m}%;background:${col}"></i></div>`;
-    box.appendChild(div);
+    const weak=st&&st.att>=2&&m<40, now=id===S.currentSkill;
+    const grade=(E.MATH_GRADE&&E.MATH_GRADE[id])||"";
+    box.appendChild(rowEl(sk.emoji, sk.name+(grade?` <span style="font-size:10px;color:var(--sub);font-weight:700">${grade}</span>`:""),
+      m, m>=80?"達人 ✓":(st&&st.att?m+"%":"未挑戦"), {weak,now}));
+  });
+  // ② その他の教科（トリビアの正解数で習得度。10問正解で達人）
+  ["science","kotoba","world","society","life","game"].forEach(cat=>{
+    const ids=(E.CAT_TRIVIA&&E.CAT_TRIVIA[cat])||[]; if(!ids.length)return;
+    const sc=(E.SUBJECTS&&E.SUBJECTS[cat])||{color:"#3b82f6",emoji:"📘"};
+    let totCor=0; ids.forEach(id=>{const t=S.trivia[id]; if(t)totCor+=t.cor;});
+    box.appendChild(subjHeader(cat, totCor?`${totCor}問 正解`:"これから"));
+    ids.forEach(id=>{ const t=E.TRIVIA[id]; if(!t)return; const st=S.trivia[id]||{att:0,cor:0};
+      const m=Math.min(100, st.cor*10);
+      const label= st.att===0?"未挑戦":(st.cor>=10?"達人 ✓":`${st.cor}問正解`);
+      box.appendChild(rowEl(t.emoji||sc.emoji, t.name, m, label, {color:sc.color}));
+    });
   });
 }
 function renderBadges(){
